@@ -1,0 +1,4252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Lend A Hand</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2c5282;
+            --primary-light: #4299e1;
+            --secondary: #38a169;
+            --secondary-light: #68d391;
+            --accent: #e53e3e;
+            --light: #f7fafc;
+            --dark: #2d3748;
+            --gray: #a0aec0;
+            --gray-light: #e2e8f0;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --radius: 12px;
+            --sidebar-width: 260px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+            min-height: 100vh;
+        }
+    
+    /* Document Status Badges */
+.document-verified {
+    background: #c6f6d5;
+    color: #2f855a;
+}
+
+.document-rejected {
+    background: #fed7d7;
+    color: #c53030;
+}
+ .goog-te-banner-frame,
+    .goog-te-banner,
+    .goog-te-banner-wrapper,
+    .skiptranslate,
+    #goog-gt-tt,
+    .goog-te-balloon-frame,
+    .goog-tooltip,
+    .goog-tooltip:hover,
+    .goog-text-highlight {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        width: 0 !important;
+        position: absolute !important;
+    }
+    
+    /* Prevent body shift */
+    body {
+        top: 0px !important;
+        position: static !important;
+    }
+    
+    /* Hide the translation menu if it appears */
+    .goog-te-menu-frame {
+        display: none !important;
+    }
+    
+    /* Style the Google Translate dropdown */
+    .goog-te-gadget {
+        font-size: 0 !important;
+    }
+    
+    .goog-te-gadget .goog-te-combo {
+        margin: 4px 0;
+        padding: 6px 10px;
+        border: 1px solid var(--gray-light);
+        border-radius: 6px;
+        background: white;
+        color: var(--dark);
+        font-size: 14px !important;
+    }
+.document-pending {
+    background: #feebcb;
+    color: #b45309;
+}
+/* Fix modal close button positioning */
+.modal-header .close-modal {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    cursor: pointer;
+    color: var(--gray);
+    line-height: 1;
+    padding: 0;
+    margin: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-header .close-modal:hover {
+    color: var(--dark);
+}
+
+/* Ensure modal is above everything */
+.modal {
+    z-index: 9999;
+}
+
+/* Make sure detail rows display properly */
+.detail-row {
+    display: flex;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.detail-label {
+    width: 180px;
+    font-weight: 600;
+    color: var(--dark);
+    flex-shrink: 0;
+}
+
+.detail-value {
+    flex: 1;
+    word-break: break-word;
+}
+
+/* Small buttons for document actions */
+.btn-doc-action {
+    padding: 3px 8px;
+    font-size: 0.75rem;
+    margin-right: 5px;
+}
+  
+        /* Admin Header */
+        .admin-header {
+            background: white;
+            padding: 15px 30px;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .admin-header h1 {
+            color: var(--primary);
+            font-size: 1.8rem;
+        }
+        
+        .admin-header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .admin-header .user-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary-light);
+        }
+        
+        /* Main Layout */
+        .admin-container {
+            display: flex;
+            min-height: calc(100vh - 70px);
+        }
+        
+        /* Sidebar Navigation */
+        .admin-sidebar {
+            width: var(--sidebar-width);
+            background: var(--primary);
+            color: white;
+            padding: 20px 0;
+            height: 100%;
+            box-shadow: var(--shadow);
+        }
+        
+        .admin-logo {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .admin-logo h2 {
+            font-size: 1.5rem;
+        }
+        
+        .admin-nav {
+            list-style: none;
+            padding: 0 15px;
+        }
+        
+        .admin-nav li {
+            margin-bottom: 5px;
+        }
+        
+        .admin-nav a {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            text-decoration: none;
+            color: white;
+            border-radius: 8px;
+            transition: all 0.3s;
+            gap: 12px;
+            cursor: pointer;
+        }
+        
+        .admin-nav a:hover, .admin-nav a.active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .admin-nav i {
+            width: 20px;
+            text-align: center;
+        }
+        /* Broadcast specific styles */
+.broadcast-form {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.message-status {
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.status-sent {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-failed {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.preview-box {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    margin-top: 15px;
+}
+
+.preview-box h4 {
+    margin-top: 0;
+    color: #333;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+        /* Main Content */
+        .admin-content {
+            flex: 1;
+            padding: 30px;
+        }
+        
+        .content-section {
+            background: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+            display: none;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--gray-light);
+        }
+        
+        .section-header h2 {
+            font-size: 1.5rem;
+            color: var(--dark);
+        }
+        
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .stat-icon.blue {
+            background: rgba(66, 153, 225, 0.2);
+            color: var(--primary-light);
+        }
+        
+        .stat-icon.green {
+            background: rgba(104, 211, 145, 0.2);
+            color: var(--secondary);
+        }
+        
+        .stat-icon.orange {
+            background: rgba(237, 137, 54, 0.2);
+            color: #ed8936;
+        }
+        
+        .stat-icon.red {
+            background: rgba(245, 101, 101, 0.2);
+            color: #f56565;
+        }
+        
+        .stat-info h3 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .stat-info p {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+        
+        /* Table Styles */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .data-table th, .data-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-light);
+        }
+        
+        .data-table th {
+            background-color: var(--gray-light);
+            font-weight: 600;
+        }
+        
+        .data-table tr:hover {
+            background-color: #f9fafb;
+        }
+        
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-pending {
+            background: #feebcb;
+            color: #b45309;
+        }
+        
+        .status-approved {
+            background: #c6f6d5;
+            color: #2f855a;
+        }
+        
+        .status-rejected {
+            background: #fed7d7;
+            color: #c53030;
+        }
+        
+        /* Action Buttons */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-light);
+        }
+        
+        .btn-success {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: var(--secondary-light);
+        }
+        
+        .btn-danger {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #fc8181;
+        }
+        
+        /* Search and Filter */
+        .search-filter {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px 12px 40px;
+            border: 1px solid var(--gray-light);
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            color: var(--gray);
+        }
+        
+        .filter-dropdown {
+            min-width: 180px;
+        }
+        
+        select.form-control {
+            padding: 12px 15px;
+            border: 1px solid var(--gray-light);
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .admin-container {
+                flex-direction: column;
+            }
+            
+            .admin-sidebar {
+                width: 100%;
+                height: auto;
+            }
+            
+            .admin-nav {
+                display: flex;
+                overflow-x: auto;
+                padding-bottom: 10px;
+            }
+            
+            .admin-nav li {
+                margin-bottom: 0;
+                margin-right: 10px;
+            }
+            
+            .admin-nav a span {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-filter {
+                flex-direction: column;
+            }
+            
+            .data-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--gray-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            font-size: 1.4rem;
+            color: var(--dark);
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray);
+        }
+        
+        .modal-body {
+            padding: 25px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        .detail-row {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        
+        .detail-label {
+            width: 150px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .detail-value {
+            flex: 1;
+        }
+        
+        .modal-footer {
+            padding: 20px 25px;
+            border-top: 1px solid var(--gray-light);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+          /* Village Account Form Styles */
+        .village-account-form {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 20px 0;
+            color: #0b2b4a;
+            background: #fff;
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+        
+        .village-header {
+            text-align: center;
+            margin-bottom: 12px;
+            border-bottom: 3px solid #0b2b4a;
+            padding-bottom: 6px;
+        }
+        
+        .village-header h1 { 
+            margin: 4px 0; 
+            font-size: 20px; 
+            color: #0b2b4a;
+        }
+        
+        .village-header .meta { 
+            font-size:13px; 
+            color:#444; 
+            margin-top:4px; 
+        }
+        
+        .village-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .village-table th, .village-table td {
+            border: 1px solid #0b2b4a;
+            padding: 6px;
+            vertical-align: top;
+        }
+        
+        .village-table th {
+            background: #e6f3fb;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .village-section-title {
+            background: #0b2b4a;
+            color: #fff;
+            padding: 6px;
+            margin-top: 12px;
+            display:inline-block;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .village-watermark {
+            position: relative;
+            text-align: center;
+            opacity: 0.08;
+            font-size: 60px;
+            color: #666;
+            pointer-events: none;
+            user-select: none;
+            margin-top: 20px;
+        }
+        
+        /* Modal adjustments for village account form */
+        .village-form-container {
+            max-height: 70vh;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        
+        /* Loan Management Specific Styles */
+        .loan-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .loan-stat-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .loan-stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .loan-stat-info h3 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .loan-stat-info p {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--secondary);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+   <!-- Add this inside body tag, right after opening body tag -->
+<button class="mobile-menu-btn" id="mobileMenuBtn">
+    <i class="fas fa-bars"></i>
+</button>
+<!-- Google Translate for this page -->
+<div id="google_translate_element"></div>
+    <!-- Admin Header -->
+    <div class="admin-header">
+        <h1><i class="fas fa-hands-helping"></i> Admin Dashboard</h1>
+        <div class="user-info">
+            <span>Welcome, Admin</span>
+            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80" alt="Admin" class="user-img">
+            <a href="{{ url_for('admin_logout') }}" class="btn btn-danger btn-sm">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </div>
+    
+    <!-- Main Container -->
+    <div class="admin-container">
+        <!-- Sidebar Navigation -->
+        <div class="admin-sidebar">
+            <div class="admin-logo">
+                <i class="fas fa-hands-helping"></i>
+                <h2>Lend A Hand</h2>
+            </div>
+            
+            <ul class="admin-nav">
+                <li><a href="#" class="nav-link active" data-section="dashboard"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
+                <li><a href="#" class="nav-link" data-section="farmers"><i class="fas fa-user-tie"></i> <span>Farmers</span></a></li>
+                <li><a href="#" class="nav-link" data-section="vendors"><i class="fas fa-store"></i> <span>Vendors</span></a></li>
+                <li><a href="#" class="nav-link" data-section="equipment"><i class="fas fa-tractor"></i> <span>Equipment</span></a></li>
+                <li><a href="#" class="nav-link" data-section="bookings"><i class="fas fa-calendar-alt"></i> <span>Bookings</span></a></li>
+                <li><a href="#" class="nav-link" data-section="broadcast"><i class="fas fa-bullhorn"></i> <span>Broadcast</span></a></li>
+                <li><a href="#" class="nav-link" data-section="loans"><i class="fas fa-hand-holding-usd"></i> <span>Loan Management</span></a></li>
+                <li><a href="#" class="nav-link" data-section="reports"><i class="fas fa-chart-bar"></i> <span>Reports</span></a></li>
+            </ul>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="admin-content">
+            <!-- Dashboard Section -->
+            <div class="content-section active" id="dashboard-section">
+                <div class="section-header">
+                    <h2>Admin Dashboard</h2>
+                    <p>Overview of platform statistics</p>
+                </div>
+                
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalFarmers">0</h3>
+                            <p>Total Farmers</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalVendors">0</h3>
+                            <p>Total Vendors</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="fas fa-tractor"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalEquipment">0</h3>
+                            <p>Equipment Listings</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon red">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalBookings">0</h3>
+                            <p>Total Bookings</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pending Approvals -->
+                <div class="card">
+                    <div class="section-header">
+                        <h2>Pending Approvals</h2>
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon orange">
+                                <i class="fas fa-user-clock"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="pendingFarmers">0</h3>
+                                <p>Farmers Pending Approval</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon orange">
+                                <i class="fas fa-store"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="pendingVendors">0</h3>
+                                <p>Vendors Pending Approval</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Activity -->
+                <div class="card" style="margin-top: 30px;">
+                    <div class="section-header">
+                        <h2>Recent Registrations</h2>
+                    </div>
+                    
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                    <th>Contact</th>
+                                    <th>Location</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentRegistrations">
+                                <!-- Recent registrations will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Farmer Detail Modal -->
+            <div class="modal" id="farmerModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="farmerModalTitle">Farmer Details</h3>
+                        <button class="close-modal">&times;</button>
+                    </div>
+                    
+                    <div class="modal-body" id="farmerModalBody">
+                        <!-- Farmer details will be loaded here -->
+                    </div>
+                    
+                    <div class="modal-footer" id="farmerModalFooter">
+                        <!-- Action buttons will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vendor Detail Modal -->
+            <div class="modal" id="vendorModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="vendorModalTitle">Vendor Details</h3>
+                        <button class="close-modal">&times;</button>
+                    </div>
+                    
+                    <div class="modal-body" id="vendorModalBody">
+                        <!-- Vendor details will be loaded here -->
+                    </div>
+                    
+                    <div class="modal-footer" id="vendorModalFooter">
+                        <!-- Action buttons will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Farmers Section -->
+            <div class="content-section" id="farmers-section">
+                <div class="section-header">
+                    <h2>Farmer Management</h2>
+                </div>
+                
+                <div class="search-filter">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="farmerSearch" placeholder="Search farmers...">
+                    </div>
+                    
+                    <div class="filter-dropdown">
+                        <select id="farmerStatusFilter" class="form-control">
+                            <option value="all">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Location</th>
+                                <th>Farm Size</th>
+                                <th>Registration Date</th>
+                                <th>RTC Document</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="farmersTable">
+                            <!-- Farmers will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Vendors Section -->
+            <div class="content-section" id="vendors-section">
+                <div class="section-header">
+                    <h2>Vendor Management</h2>
+                    <p>Includes document verification</p>
+                </div>
+                
+                <div class="search-filter">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="vendorSearch" placeholder="Search vendors...">
+                    </div>
+                    
+                    <div class="filter-dropdown">
+                        <select id="vendorStatusFilter" class="form-control">
+                            <option value="all">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Business Name</th>
+                                <th>Contact Person</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Service Type</th>
+                                <th>Document</th>
+                                <th>Doc Status</th>
+                                <th>Registration Date</th>
+                                <th>Account Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vendorsTable">
+                            <!-- Vendors will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Broadcast Messages Section -->
+            <div class="content-section" id="broadcast-section">
+                <div class="section-header">
+                    <h2>Broadcast Messages</h2>
+                    <p>Send announcements to all registered farmers</p>
+                </div>
+                
+                <div class="card">
+                    <div class="section-header">
+                        <h3><i class="fas fa-bullhorn"></i> Send New Announcement</h3>
+                    </div>
+                    
+                    <div class="broadcast-form" style="padding: 20px;">
+                        <div class="stat-card" style="margin-bottom: 20px; background-color: #e3f2fd;">
+                            <div class="stat-info">
+                                <h3 id="totalUsers">0</h3>
+                                <p>Total Registered Farmers</p>
+                            </div>
+                            <div class="stat-icon blue">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        
+                        <form id="broadcastForm">
+                            <div style="margin-bottom: 15px;">
+                                <label for="messageTitle" style="display: block; margin-bottom: 5px; font-weight: 500;">Message Title *</label>
+                                <input type="text" id="messageTitle" class="form-control" 
+                                       placeholder="Enter message title" required
+                                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
+                            
+                            <div style="margin-bottom: 15px;">
+                                <label for="messageContent" style="display: block; margin-bottom: 5px; font-weight: 500;">Message Content *</label>
+                                <textarea id="messageContent" class="form-control" 
+                                          rows="6" placeholder="Enter your announcement message..." required
+                                          style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;"></textarea>
+                            </div>
+                            
+                            <div style="margin-bottom: 20px;">
+                                <label for="messageType" style="display: block; margin-bottom: 5px; font-weight: 500;">Message Type</label>
+                                <select id="messageType" class="form-control" style="width: 100%; padding: 10px;">
+                                    <option value="announcement">General Announcement</option>
+                                    <option value="new_equipment">New Equipment Available</option>
+                                    <option value="promotion">Special Promotion</option>
+                                    <option value="maintenance">System Maintenance</option>
+                                    <option value="emergency">Emergency Alert</option>
+                                </select>
+                            </div>
+                            
+                            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                                <button type="submit" class="btn btn-primary" id="sendBroadcastBtn" style="flex: 1;">
+                                    <i class="fas fa-paper-plane"></i> Send Broadcast Message
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="previewMessageBtn" style="flex: 1;">
+                                    <i class="fas fa-eye"></i> Preview Message
+                                </button>
+                            </div>
+                            
+                            <div id="messagePreview" style="display: none; margin-top: 20px; padding: 15px; background-color: #f5f5f5; border-radius: 5px;">
+                                <h4 style="margin-bottom: 10px;">Message Preview:</h4>
+                                <div id="previewContent"></div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Equipment Section -->
+            <div class="content-section" id="equipment-section">
+                <div class="section-header">
+                    <h2>Equipment Management</h2>
+                </div>
+                
+                <div class="search-filter">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="equipmentSearch" placeholder="Search equipment...">
+                    </div>
+                    
+                    <div class="filter-dropdown">
+                        <select id="equipmentStatusFilter" class="form-control">
+                            <option value="all">All Status</option>
+                            <option value="available">Available</option>
+                            <option value="unavailable">Unavailable</option>
+                            <option value="maintenance">Maintenance</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-dropdown">
+                        <select id="equipmentCategoryFilter" class="form-control">
+                            <option value="all">All Categories</option>
+                            <option value="tractor">Tractor</option>
+                            <option value="harvester">Harvester</option>
+                            <option value="plough">Plough</option>
+                            <option value="irrigation">Irrigation</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Equipment Name</th>
+                                <th>Category</th>
+                                <th>Vendor</th>
+                                <th>Price</th>
+                                <th>Location</th>
+                                <th>Stock</th>
+                                <th>Status</th>
+                                <th>Added Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="equipmentTable">
+                            <!-- Equipment will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Equipment Detail Modal -->
+            <div class="modal" id="equipmentModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="equipmentModalTitle">Equipment Details</h3>
+                        <button class="close-modal">&times;</button>
+                    </div>
+                    
+                    <div class="modal-body" id="equipmentModalBody">
+                        <!-- Equipment details will be loaded here -->
+                    </div>
+                    
+                    <div class="modal-footer" id="equipmentModalFooter">
+                        <!-- Action buttons will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bookings Section -->
+            <div class="content-section" id="bookings-section">
+                <div class="section-header">
+                    <h2>Booking Management</h2>
+                </div>
+                
+                <div class="search-filter">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="bookingSearch" placeholder="Search bookings...">
+                    </div>
+                    
+                    <div class="filter-dropdown">
+                        <select id="bookingStatusFilter" class="form-control">
+                            <option value="all">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-dropdown">
+                        <select id="bookingDateFilter" class="form-control">
+                            <option value="all">All Dates</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="past">Past Bookings</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Booking ID</th>
+                                <th>Farmer</th>
+                                <th>Vendor</th>
+                                <th>Equipment</th>
+                                <th>Total Amount</th>
+                                <th>Status</th>
+                                <th>Booking Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookingsTable">
+                            <!-- Bookings will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Booking Detail Modal -->
+            <div class="modal" id="bookingModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="bookingModalTitle">Booking Details</h3>
+                        <button class="close-modal">&times;</button>
+                    </div>
+                    
+                    <div class="modal-body" id="bookingModalBody">
+                        <!-- Booking details will be loaded here -->
+                    </div>
+                    
+                    <div class="modal-footer" id="bookingModalFooter">
+                        <!-- Action buttons will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= LOAN MANAGEMENT SECTION ================= -->
+            <div class="content-section" id="loans-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-hand-holding-usd"></i> Loan Management</h2>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-primary" onclick="loadLoans()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                        <button class="btn btn-success" onclick="exportLoanReport()">
+                            <i class="fas fa-download"></i> Export Report
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Loan Statistics -->
+                <div class="stats-grid" style="margin-bottom: 30px;">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="fas fa-rupee-sign"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalLoanAmount">₹0</h3>
+                            <p>Total Loan Amount</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="activeLoans">0</h3>
+                            <p>Active Loans</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="defaultedLoans">0</h3>
+                            <p>Defaulted Loans</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon red">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="overdueLoans">0</h3>
+                            <p>Overdue Loans</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Search and Filter -->
+                <div class="search-filter">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="loanSearch" placeholder="Search by farmer, equipment, phone...">
+                    </div>
+                    
+                    <div class="filter-dropdown">
+                        <select id="loanStatusFilter" class="form-control">
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="defaulted">Defaulted</option>
+                            <option value="completed">Completed</option>
+                            <option value="foreclosed">Foreclosed</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-dropdown">
+                        <select id="loanRiskFilter" class="form-control">
+                            <option value="all">All Risk Levels</option>
+                            <option value="low">Low Risk</option>
+                            <option value="medium">Medium Risk</option>
+                            <option value="high">High Risk</option>
+                            <option value="critical">Critical</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Loans Table -->
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Loan ID</th>
+                                <th>Farmer</th>
+                                <th>Equipment</th>
+                                <th>Loan Amount</th>
+                                <th>EMI</th>
+                                <th>Paid/Total</th>
+                                <th>Next Due</th>
+                                <th>Status</th>
+                                <th>Risk</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="loansTable">
+                            <!-- Loans will be loaded here -->
+                            <tr>
+                                <td colspan="10" style="text-align: center; padding: 40px; color: var(--gray);">
+                                    <i class="fas fa-spinner fa-spin"></i> Loading loans...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Loan Details Modal -->
+            <div class="modal" id="loanModal">
+                <div class="modal-content" style="max-width: 900px;">
+                    <div class="modal-header">
+                        <h3 id="loanModalTitle">Loan Details</h3>
+                        <button class="close-modal">&times;</button>
+                    </div>
+                    
+                    <div class="modal-body" id="loanDetailsContent">
+                        <!-- Loan details will be loaded here -->
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button class="btn btn-success" onclick="openPaymentModal()">
+                            <i class="fas fa-rupee-sign"></i> Record Payment
+                        </button>
+                        <button class="btn btn-warning" onclick="openDefaultModal()">
+                            <i class="fas fa-exclamation-triangle"></i> Mark Default
+                        </button>
+                        <button class="btn btn-primary" onclick="closeLoanModal()">Close</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Modal -->
+            <div class="modal" id="paymentModal">
+                <div class="modal-content" style="max-width: 500px;">
+                    <div class="modal-header">
+                        <h3>Record Payment</h3>
+                        <button class="close-modal">&times;</button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <form id="paymentForm">
+                            <input type="hidden" id="paymentLoanId">
+                            
+                            <div class="form-group">
+                                <label>Payment Amount (₹)</label>
+                                <input type="number" id="paymentAmount" class="form-control" min="1" step="0.01" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Payment Method</label>
+                                <select id="paymentMethod" class="form-control">
+                                    <option value="cash">Cash</option>
+                                    <option value="bank_transfer">Bank Transfer</option>
+                                    <option value="upi">UPI</option>
+                                    <option value="cheque">Cheque</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Transaction ID (Optional)</label>
+                                <input type="text" id="transactionId" class="form-control">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Remarks</label>
+                                <textarea id="paymentRemarks" class="form-control" rows="2"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closePaymentModal()">Cancel</button>
+                        <button class="btn btn-success" onclick="submitPayment()">Record Payment</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Default Modal -->
+            <div class="modal" id="defaultModal">
+                <div class="modal-content" style="max-width: 500px;">
+                    <div class="modal-header">
+                        <h3>Mark as Default</h3>
+                        <button class="close-modal">&times;</button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <div class="alert" style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            This action will mark the loan as defaulted and initiate recovery process.
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Default Reason</label>
+                            <textarea id="defaultReason" class="form-control" rows="3" placeholder="Enter reason for default..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeDefaultModal()">Cancel</button>
+                        <button class="btn btn-danger" onclick="confirmDefault()">Confirm Default</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Section -->
+            <div class="content-section" id="reports-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-chart-bar"></i> Platform Analytics</h2>
+                    <p>Real-time data from database</p>
+                </div>
+                
+                <!-- Loading and Refresh -->
+                <div style="margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <button class="btn btn-primary" id="loadRealReportsBtn">
+                            <i class="fas fa-sync-alt"></i> Load Data
+                        </button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div id="reportsLoading" style="display: none; color: var(--primary);">
+                            <i class="fas fa-spinner fa-spin"></i> Loading real data...
+                        </div>
+                        <span id="dataLastUpdated" style="color: var(--gray); font-size: 0.9rem;">
+                            Data not loaded
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Summary Stats -->
+                <div class="stats-grid" style="margin-bottom: 30px;">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="realTotalFarmers">0</h3>
+                            <p>Approved Farmers</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="realTotalVendors">0</h3>
+                            <p>Approved Vendors</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="fas fa-tractor"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="realTotalEquipment">0</h3>
+                            <p>Total Equipment</p>
+                            <small style="font-size: 0.8rem; color: #38a169;">
+                                <i class="fas fa-check-circle"></i> <span id="realAvailableEquipment">0</span> available
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon red">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="realTotalOrders">0</h3>
+                            <p>Total Orders</p>
+                            <small style="font-size: 0.8rem;">
+                                <span id="realTotalBookings">0</span> bookings • <span id="realTotalRents">0</span> rents
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Charts -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 25px; margin-bottom: 30px;">
+                    
+                    <!-- Chart 1: Registration Timeline -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3><i class="fas fa-user-plus"></i> Registration Timeline (Last 6 Months)</h3>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="realRegistrationChart"></canvas>
+                        </div>
+                        <div class="chart-empty" id="registrationEmpty">
+                            <i class="fas fa-users"></i>
+                            <p>No registration data</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Chart 2: Equipment Categories -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3><i class="fas fa-tractor"></i> Equipment by Category</h3>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="realEquipmentChart"></canvas>
+                        </div>
+                        <div class="chart-empty" id="equipmentEmpty">
+                            <i class="fas fa-tractor"></i>
+                            <p>No equipment data</p>
+                        </div>
+                    </div>
+                    
+                </div>
+                
+                <!-- Status Distribution Charts -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px; margin-bottom: 30px;">
+                    
+                    <!-- Chart 3: Booking Status -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3><i class="fas fa-calendar-check"></i> Booking Status</h3>
+                            <small>Total: <span id="bookingCount">0</span></small>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="realBookingChart"></canvas>
+                        </div>
+                        <div class="chart-empty" id="bookingEmpty">
+                            <i class="fas fa-calendar"></i>
+                            <p>No booking data</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Chart 4: Rent Request Status -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3><i class="fas fa-exchange-alt"></i> Rent Request Status</h3>
+                            <small>Total: <span id="rentCount">0</span></small>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="realRentChart"></canvas>
+                        </div>
+                        <div class="chart-empty" id="rentEmpty">
+                            <i class="fas fa-handshake"></i>
+                            <p>No rent request data</p>
+                        </div>
+                    </div>
+                    
+                </div>
+
+                <!-- Recent Activities -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px;">
+                    
+                    <!-- Recent Bookings -->
+                    <div class="card" style="padding: 20px;">
+                        <div class="section-header" style="margin-bottom: 15px;">
+                            <h3><i class="fas fa-history"></i> Recent Bookings</h3>
+                        </div>
+                        <div style="max-height: 300px; overflow-y: auto;">
+                            <table class="data-table" style="font-size: 0.85rem;">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Equipment</th>
+                                        <th>User</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentBookingsTable">
+                                    <tr>
+                                        <td colspan="5" style="text-align: center; padding: 20px; color: var(--gray);">
+                                            <i class="fas fa-spinner fa-spin"></i> Loading...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Rent Requests -->
+                    <div class="card" style="padding: 20px;">
+                        <div class="section-header" style="margin-bottom: 15px;">
+                            <h3><i class="fas fa-exchange-alt"></i> Recent Rent Requests</h3>
+                        </div>
+                        <div style="max-height: 300px; overflow-y: auto;">
+                            <table class="data-table" style="font-size: 0.85rem;">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Equipment</th>
+                                        <th>User</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentRentsTable">
+                                    <tr>
+                                        <td colspan="5" style="text-align: center; padding: 20px; color: var(--gray);">
+                                            <i class="fas fa-spinner fa-spin"></i> Loading...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Registrations -->
+                    <div class="card" style="padding: 20px;">
+                        <div class="section-header" style="margin-bottom: 15px;">
+                            <h3><i class="fas fa-user-plus"></i> Recent Registrations</h3>
+                        </div>
+                        <div style="max-height: 300px; overflow-y: auto;">
+                            <table class="data-table" style="font-size: 0.85rem;">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Name</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentRegTable">
+                                    <tr>
+                                        <td colspan="3" style="text-align: center; padding: 20px; color: var(--gray);">
+                                            <i class="fas fa-spinner fa-spin"></i> Loading...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Chart Styles */
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            border: 1px solid #eaeaea;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-header h3 {
+            font-size: 1.1rem;
+            color: #2d3748;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-container {
+            height: 300px;
+            position: relative;
+            width: 100%;
+        }
+
+        .chart-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+            color: #a0aec0;
+            text-align: center;
+        }
+
+        .chart-empty i {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        .chart-empty p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+    </style>
+
+    <script>
+        // Global data storage
+        let loansData = [];
+        let selectedLoanId = null;
+        let farmersData = [];
+        let vendorsData = [];
+        let statsData = {};
+        let equipmentData = [];
+        let bookingsData = [];
+        let broadcastHistory = [];
+        
+        let realRegistrationChart = null;
+        let realEquipmentChart = null;
+        let realBookingChart = null;
+        let realRentChart = null;
+        
+        // DOM Elements
+        const navLinks = document.querySelectorAll('.nav-link');
+        const contentSections = document.querySelectorAll('.content-section');
+        const farmersTable = document.getElementById('farmersTable');
+        const vendorsTable = document.getElementById('vendorsTable');
+        const farmerModal = document.getElementById('farmerModal');
+        const vendorModal = document.getElementById('vendorModal');
+        const farmerSearch = document.getElementById('farmerSearch');
+        const vendorSearch = document.getElementById('vendorSearch');
+        const farmerStatusFilter = document.getElementById('farmerStatusFilter');
+        const vendorStatusFilter = document.getElementById('vendorStatusFilter');
+        const bookingsTable = document.getElementById('bookingsTable');
+        const bookingModal = document.getElementById('bookingModal');
+        const bookingSearch = document.getElementById('bookingSearch');
+        const bookingStatusFilter = document.getElementById('bookingStatusFilter');
+        const bookingDateFilter = document.getElementById('bookingDateFilter');
+        const equipmentTable = document.getElementById('equipmentTable');
+        const equipmentModal = document.getElementById('equipmentModal');
+        const equipmentSearch = document.getElementById('equipmentSearch');
+        const equipmentStatusFilter = document.getElementById('equipmentStatusFilter');
+        const equipmentCategoryFilter = document.getElementById('equipmentCategoryFilter');
+        const broadcastHistoryTable = document.getElementById('broadcastHistory');
+        const broadcastForm = document.getElementById('broadcastForm');
+        const sendBroadcastBtn = document.getElementById('sendBroadcastBtn');
+        const previewMessageBtn = document.getElementById('previewMessageBtn');
+        const messagePreview = document.getElementById('messagePreview');
+        const previewContent = document.getElementById('previewContent');
+
+        // ==================== LOAN MANAGEMENT FUNCTIONS ====================
+
+        async function loadLoans() {
+            try {
+                const statusFilterEl = document.getElementById('loanStatusFilter');
+                const riskFilterEl = document.getElementById('loanRiskFilter');
+                const searchEl = document.getElementById('loanSearch');
+                
+                const statusFilter = statusFilterEl ? statusFilterEl.value : 'all';
+                const riskFilter = riskFilterEl ? riskFilterEl.value : 'all';
+                const searchTerm = searchEl ? searchEl.value : '';
+                
+                let url = '/api/admin/loans';
+                const params = new URLSearchParams();
+                
+                if (statusFilter !== 'all') {
+                    params.append('status', statusFilter);
+                }
+                
+                if (searchTerm) {
+                    params.append('search', searchTerm);
+                }
+                
+                if (params.toString()) {
+                    url += '?' + params.toString();
+                }
+                
+                const response = await fetch(url);
+                const loans = await response.json();
+                
+                if (loans.error) {
+                    showNotification(loans.error, 'error');
+                    return;
+                }
+                
+                loansData = loans;
+                renderLoansTable(loans, riskFilter);
+                updateLoanStats();
+                
+            } catch (error) {
+                console.error('Error loading loans:', error);
+                showNotification('Error loading loans', 'error');
+            }
+        }
+
+        function renderLoansTable(loans, riskFilter = 'all') {
+    const tableBody = document.getElementById('loansTable');
+    if (!tableBody) return;
+    
+    tableBody.innerHTML = '';
+    
+    if (!loans || loans.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px; color: var(--gray);">No loans found.</td></tr>';
+        return;
+    }
+    
+    // Apply risk filter
+    let filteredLoans = loans;
+    if (riskFilter !== 'all') {
+        filteredLoans = loans.filter(loan => loan.default_risk === riskFilter);
+    }
+    
+    filteredLoans.forEach(loan => {
+        const row = document.createElement('tr');
+        
+        const statusClass = getLoanStatusClass(loan.status);
+        const riskClass = getLoanRiskClass(loan.default_risk || 'low');
+        
+        const nextDue = loan.next_due_date ? formatDate(loan.next_due_date) : 'N/A';
+        const daysOverdue = loan.days_overdue || 0;
+        
+        let dueDateDisplay = nextDue;
+        if (daysOverdue > 0) {
+            dueDateDisplay = `<span style="color: #c53030;">${nextDue} (Overdue ${daysOverdue}d)</span>`;
+        }
+        
+        row.innerHTML = `
+            <td>#${loan.id}</td>
+            <td>
+                <strong>${loan.user_name}</strong><br>
+                <small>${loan.user_phone || ''}</small>
+            </td>
+            <td>${loan.equipment_name}</td>
+            <td>₹${parseFloat(loan.loan_amount).toLocaleString()}</td>
+            <td>₹${parseFloat(loan.emi_amount).toLocaleString()}</td>
+            <td>${loan.emi_paid || 0}/${loan.loan_term_months || 0}</td>
+            <td>${dueDateDisplay}</td>
+            <td><span class="status-badge ${statusClass}">${loan.status || 'N/A'}</span></td>
+            <td><span class="status-badge ${riskClass}">${loan.default_risk || 'low'}</span></td>
+            <td>
+                <button class="btn btn-primary btn-sm view-loan-btn" data-id="${loan.id}">
+                    <i class="fas fa-eye"></i> View
+                </button>
+                <!-- REMOVED PAYMENT BUTTON - Admins cannot record payments -->
+            </td>
+        `;
+        
+        tableBody.appendChild(row);
+    });
+    
+    // Add event listeners
+    document.querySelectorAll('.view-loan-btn').forEach(btn => {
+        btn.addEventListener('click', () => viewLoanDetails(btn.dataset.id));
+    });
+}
+
+        function getLoanStatusClass(status) {
+            const classes = {
+                'active': 'status-approved',
+                'completed': 'status-completed',
+                'defaulted': 'status-rejected',
+                'foreclosed': 'status-pending'
+            };
+            return classes[status] || 'status-pending';
+        }
+
+        function getLoanRiskClass(risk) {
+            const classes = {
+                'low': 'status-approved',
+                'medium': 'status-pending',
+                'high': 'status-pending',
+                'critical': 'status-rejected'
+            };
+            return classes[risk] || 'status-pending';
+        }
+
+        async function updateLoanStats() {
+            try {
+                const response = await fetch('/api/admin/loan/stats');
+                const stats = await response.json();
+                
+                const totalAmountEl = document.getElementById('totalLoanAmount');
+                const activeLoansEl = document.getElementById('activeLoans');
+                const defaultedLoansEl = document.getElementById('defaultedLoans');
+                const overdueLoansEl = document.getElementById('overdueLoans');
+                
+                if (totalAmountEl) totalAmountEl.textContent = `₹${parseFloat(stats.total_loan_amount || 0).toLocaleString()}`;
+                if (activeLoansEl) activeLoansEl.textContent = stats.active_loans || 0;
+                if (defaultedLoansEl) defaultedLoansEl.textContent = stats.defaulted_loans || 0;
+                if (overdueLoansEl) overdueLoansEl.textContent = stats.high_risk_loans || 0;
+                
+            } catch (error) {
+                console.error('Error updating loan stats:', error);
+            }
+        }
+
+        async function viewLoanDetails(loanId) {
+            try {
+                const response = await fetch(`/api/admin/loan/${loanId}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    showNotification(data.error, 'error');
+                    return;
+                }
+                
+                selectedLoanId = loanId;
+                displayLoanDetails(data);
+                
+            } catch (error) {
+                console.error('Error fetching loan details:', error);
+                showNotification('Error loading loan details', 'error');
+            }
+        }
+
+        function displayLoanDetails(data) {
+    const modal = document.getElementById('loanModal');
+    const title = document.getElementById('loanModalTitle');
+    const content = document.getElementById('loanDetailsContent');
+    const footer = document.querySelector('#loanModal .modal-footer');
+    
+    if (!modal || !title || !content) return;
+    
+    const loan = data.loan;
+    title.textContent = `Loan Details - ${loan.user_name} (${loan.equipment_name})`;
+    
+    // Calculate payment progress percentage
+    const progressPercent = loan.loan_term_months ? ((loan.emi_paid / loan.loan_term_months) * 100).toFixed(1) : 0;
+    
+    let paymentsHtml = '';
+    if (data.payments && data.payments.length > 0) {
+        paymentsHtml = data.payments.map(p => `
+            <tr>
+                <td>${p.payment_month}</td>
+                <td>${formatDate(p.payment_date)}</td>
+                <td>₹${parseFloat(p.amount_paid).toLocaleString()}</td>
+                <td>₹${parseFloat(p.principal_paid).toLocaleString()}</td>
+                <td>₹${parseFloat(p.interest_paid).toLocaleString()}</td>
+                <td><span class="status-badge status-approved">${p.status}</span></td>
+            </tr>
+        `).join('');
+    } else {
+        paymentsHtml = '<tr><td colspan="6" style="text-align: center;">No payments recorded yet</td></tr>';
+    }
+    
+    content.innerHTML = `
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <!-- Farmer Information -->
+            <div class="details-section">
+                <h4>Farmer Details</h4>
+                <div class="detail-row">
+                    <span class="detail-label">Name:</span>
+                    <span class="detail-value">${loan.user_name}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Phone:</span>
+                    <span class="detail-value">${loan.user_phone || 'N/A'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">${loan.user_email || 'N/A'}</span>
+                </div>
+            </div>
+            
+            <!-- Loan Information -->
+            <div class="details-section">
+                <h4>Loan Details</h4>
+                <div class="detail-row">
+                    <span class="detail-label">Loan Amount:</span>
+                    <span class="detail-value">₹${parseFloat(loan.loan_amount).toLocaleString()}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Down Payment:</span>
+                    <span class="detail-value">₹${parseFloat(loan.down_payment || 0).toLocaleString()}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Interest Rate:</span>
+                    <span class="detail-value">${loan.interest_rate}%</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Term:</span>
+                    <span class="detail-value">${loan.loan_term_months || 0} months</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">EMI Amount:</span>
+                    <span class="detail-value">₹${parseFloat(loan.emi_amount).toLocaleString()}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Equipment Information -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <div class="details-section">
+                <h4>Equipment Details</h4>
+                <div class="detail-row">
+                    <span class="detail-label">Equipment:</span>
+                    <span class="detail-value">${loan.equipment_name}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Category:</span>
+                    <span class="detail-value">${loan.equipment_category || 'N/A'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Vendor:</span>
+                    <span class="detail-value">${loan.vendor_name || 'N/A'}</span>
+                </div>
+            </div>
+            
+            <!-- Payment Progress -->
+            <div class="details-section">
+                <h4>Payment Progress</h4>
+                <div style="margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span>EMI Paid: ${loan.emi_paid || 0}/${loan.loan_term_months || 0}</span>
+                        <span>${progressPercent}%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progressPercent}%;"></div>
+                    </div>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Status:</span>
+                    <span class="detail-value"><span class="status-badge ${getLoanStatusClass(loan.status)}">${loan.status}</span></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Risk Level:</span>
+                    <span class="detail-value"><span class="status-badge ${getLoanRiskClass(loan.default_risk)}">${loan.default_risk}</span></span>
+                </div>
+                ${data.days_overdue > 0 ? `
+                <div class="detail-row" style="color: #c53030;">
+                    <span class="detail-label">Days Overdue:</span>
+                    <span class="detail-value">${data.days_overdue} days</span>
+                </div>
+                ` : ''}
+                <div class="detail-row">
+                    <span class="detail-label">Next Due Date:</span>
+                    <span class="detail-value">${loan.next_due_date ? formatDate(loan.next_due_date) : 'N/A'}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payment History -->
+        <div class="details-section">
+            <h4>Payment History</h4>
+            <div style="overflow-x: auto;">
+                <table class="data-table" style="font-size: 0.9rem;">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Principal</th>
+                            <th>Interest</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${paymentsHtml}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        ${loan.notes ? `
+        <div class="details-section">
+            <h4>Notes</h4>
+            <p style="white-space: pre-line;">${loan.notes}</p>
+        </div>
+        ` : ''}
+    `;
+    
+    // Update footer - remove payment button, keep only Close
+    if (footer) {
+        footer.innerHTML = `
+            <button class="btn btn-primary" onclick="closeLoanModal()">Close</button>
+        `;
+    }
+    
+    modal.style.display = 'flex';
+}
+
+        function openPaymentModal() {
+            if (!selectedLoanId) {
+                showNotification('Please select a loan first', 'error');
+                return;
+            }
+            const paymentModal = document.getElementById('paymentModal');
+            const paymentLoanId = document.getElementById('paymentLoanId');
+            if (paymentLoanId) paymentLoanId.value = selectedLoanId;
+            if (paymentModal) paymentModal.style.display = 'flex';
+        }
+
+        function closePaymentModal() {
+            const paymentModal = document.getElementById('paymentModal');
+            if (paymentModal) paymentModal.style.display = 'none';
+        }
+
+        function closeLoanModal() {
+            const loanModal = document.getElementById('loanModal');
+            if (loanModal) loanModal.style.display = 'none';
+        }
+
+        function openDefaultModal() {
+            if (!selectedLoanId) {
+                showNotification('Please select a loan first', 'error');
+                return;
+            }
+            const defaultModal = document.getElementById('defaultModal');
+            if (defaultModal) defaultModal.style.display = 'flex';
+        }
+
+        function closeDefaultModal() {
+            const defaultModal = document.getElementById('defaultModal');
+            const defaultReason = document.getElementById('defaultReason');
+            if (defaultModal) defaultModal.style.display = 'none';
+            if (defaultReason) defaultReason.value = '';
+        }
+
+        async function submitPayment() {
+            const loanId = document.getElementById('paymentLoanId')?.value;
+            const amount = document.getElementById('paymentAmount')?.value;
+            const method = document.getElementById('paymentMethod')?.value;
+            const transactionId = document.getElementById('transactionId')?.value;
+            const remarks = document.getElementById('paymentRemarks')?.value;
+            
+            if (!loanId || !amount || amount <= 0) {
+                showNotification('Please enter a valid amount', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/admin/loan/${loanId}/payments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        amount_paid: amount,
+                        payment_method: method || 'cash',
+                        transaction_id: transactionId,
+                        remarks: remarks
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification('Payment recorded successfully!', 'success');
+                    closePaymentModal();
+                    closeLoanModal();
+                    loadLoans();
+                } else {
+                    showNotification(result.error || 'Error recording payment', 'error');
+                }
+            } catch (error) {
+                console.error('Error recording payment:', error);
+                showNotification('Error recording payment', 'error');
+            }
+        }
+
+        async function confirmDefault() {
+            const reason = document.getElementById('defaultReason')?.value;
+            
+            if (!reason) {
+                showNotification('Please provide a reason for default', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/admin/loan/${selectedLoanId}/status`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        status: 'defaulted',
+                        reason: reason
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification('Loan marked as defaulted', 'warning');
+                    closeDefaultModal();
+                    closeLoanModal();
+                    loadLoans();
+                } else {
+                    showNotification(result.error || 'Error updating loan status', 'error');
+                }
+            } catch (error) {
+                console.error('Error updating loan status:', error);
+                showNotification('Error updating loan status', 'error');
+            }
+        }
+
+        function exportLoanReport() {
+            if (!loansData || loansData.length === 0) {
+                showNotification('No data to export', 'error');
+                return;
+            }
+            
+            let csv = "Loan ID,Farmer Name,Phone,Equipment,Loan Amount,Interest Rate,Term (months),EMI Amount,Paid EMIs,Status,Risk Level\n";
+            
+            loansData.forEach(loan => {
+                csv += `${loan.id},${loan.user_name},${loan.user_phone || ''},${loan.equipment_name},${loan.loan_amount},${loan.interest_rate}%,${loan.loan_term_months || 0},${loan.emi_amount},${loan.emi_paid || 0},${loan.status},${loan.default_risk || 'low'}\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `loan_report_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        async function loadRealReports() {
+            showReportsLoading(true);
+            
+            try {
+                console.log("📊 Loading REAL reports data...");
+                
+                const response = await fetch('/api/admin/reports/real-data', {
+                    credentials: 'same-origin',
+                    headers: {
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    if (data.error === 'Unauthorized') {
+                        showNotification('Session expired. Please log in again.', 'error');
+                        setTimeout(() => {
+                            window.location.href = "/admin_login";
+                        }, 2000);
+                        return;
+                    }
+                    throw new Error(data.error);
+                }
+                
+                updateSummaryStats(data.summary);
+                renderRealCharts(data);
+                updateRecentActivities(data.recentActivities);
+                
+                document.getElementById('dataLastUpdated').textContent = 
+                    `Last updated: ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+                
+                console.log("✅ REAL reports data loaded successfully");
+                showNotification('Reports data loaded successfully', 'success');
+                
+            } catch (error) {
+                console.error('❌ Error loading REAL reports:', error);
+                showNotification('Failed to load reports data: ' + error.message, 'error');
+            } finally {
+                showReportsLoading(false);
+            }
+        }
+
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'en,kn',
+                autoDisplay: false
+            }, 'google_translate_element');
+            
+            const savedLang = localStorage.getItem('selectedLanguage');
+            if(savedLang === 'kn') {
+                setTimeout(() => {
+                    var iframe = document.querySelector('.goog-te-menu-frame');
+                    if(iframe) {
+                        var select = iframe.contentWindow.document.querySelector('.goog-te-menu2-select');
+                        if(select) {
+                            select.value = 'kn';
+                            select.dispatchEvent(new Event('change'));
+                        }
+                    }
+                }, 1000);
+            }
+        }
+
+        var script = document.createElement('script');
+        script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+        document.head.appendChild(script);
+
+        function updateSummaryStats(summary) {
+            if (!summary) return;
+            
+            document.getElementById('realTotalFarmers').textContent = summary.totalFarmers || 0;
+            document.getElementById('realTotalVendors').textContent = summary.totalVendors || 0;
+            document.getElementById('realTotalEquipment').textContent = summary.totalEquipment || 0;
+            document.getElementById('realAvailableEquipment').textContent = summary.availableEquipment || 0;
+            document.getElementById('realTotalOrders').textContent = (summary.totalBookings || 0) + (summary.totalRentRequests || 0);
+            document.getElementById('realTotalBookings').textContent = summary.totalBookings || 0;
+            document.getElementById('realTotalRents').textContent = summary.totalRentRequests || 0;
+        }
+
+        function renderRealCharts(data) {
+            renderRegistrationTimeline(data.registrationTimeline);
+            renderEquipmentCategories(data.equipmentCategories);
+            renderBookingStatus(data.bookingStatus);
+            renderRentStatus(data.rentStatus);
+        }
+
+        function renderRegistrationTimeline(timelineData) {
+            const ctx = document.getElementById('realRegistrationChart');
+            const emptyDiv = document.getElementById('registrationEmpty');
+            
+            if (!ctx || !emptyDiv) return;
+            
+            if (!timelineData || timelineData.length === 0) {
+                if (realRegistrationChart) realRegistrationChart.destroy();
+                ctx.style.display = 'none';
+                emptyDiv.style.display = 'flex';
+                return;
+            }
+            
+            const labels = timelineData.map(item => item.date);
+            const farmersData = timelineData.map(item => item.farmers || 0);
+            const vendorsData = timelineData.map(item => item.vendors || 0);
+            
+            if (realRegistrationChart) realRegistrationChart.destroy();
+            
+            ctx.style.display = 'block';
+            emptyDiv.style.display = 'none';
+            
+            realRegistrationChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Farmers',
+                            data: farmersData,
+                            backgroundColor: 'rgba(56, 161, 105, 0.7)',
+                            borderColor: 'rgba(56, 161, 105, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Vendors',
+                            data: vendorsData,
+                            backgroundColor: 'rgba(49, 130, 206, 0.7)',
+                            borderColor: 'rgba(49, 130, 206, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y} registrations`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderEquipmentCategories(categoriesData) {
+            const ctx = document.getElementById('realEquipmentChart');
+            const emptyDiv = document.getElementById('equipmentEmpty');
+            
+            if (!ctx || !emptyDiv) return;
+            
+            if (!categoriesData || categoriesData.length === 0) {
+                if (realEquipmentChart) realEquipmentChart.destroy();
+                ctx.style.display = 'none';
+                emptyDiv.style.display = 'flex';
+                return;
+            }
+            
+            const labels = categoriesData.map(item => item.category);
+            const data = categoriesData.map(item => item.count);
+            
+            if (realEquipmentChart) realEquipmentChart.destroy();
+            
+            ctx.style.display = 'block';
+            emptyDiv.style.display = 'none';
+            
+            realEquipmentChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            '#4299e1', '#38a169', '#d69e2e', '#ed8936', '#9f7aea',
+                            '#f687b3', '#4fd1c7', '#fc8181', '#68d391', '#a0aec0'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return `${context.label}: ${context.parsed} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderBookingStatus(statusData) {
+            const ctx = document.getElementById('realBookingChart');
+            const emptyDiv = document.getElementById('bookingEmpty');
+            
+            if (!ctx || !emptyDiv) return;
+            
+            if (!statusData || statusData.length === 0) {
+                if (realBookingChart) realBookingChart.destroy();
+                ctx.style.display = 'none';
+                emptyDiv.style.display = 'flex';
+                document.getElementById('bookingCount').textContent = '0';
+                return;
+            }
+            
+            const labels = statusData.map(item => item.status);
+            const data = statusData.map(item => item.count);
+            const totalBookings = data.reduce((a, b) => a + b, 0);
+            
+            document.getElementById('bookingCount').textContent = totalBookings;
+            
+            if (realBookingChart) realBookingChart.destroy();
+            
+            ctx.style.display = 'block';
+            emptyDiv.style.display = 'none';
+            
+            realBookingChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: ['#ecc94b', '#4299e1', '#38a169', '#fc8181', '#9f7aea']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const percentage = ((context.parsed / totalBookings) * 100).toFixed(1);
+                                    return `${context.label}: ${context.parsed} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderRentStatus(statusData) {
+            const ctx = document.getElementById('realRentChart');
+            const emptyDiv = document.getElementById('rentEmpty');
+            
+            if (!ctx || !emptyDiv) return;
+            
+            if (!statusData || statusData.length === 0) {
+                if (realRentChart) realRentChart.destroy();
+                ctx.style.display = 'none';
+                emptyDiv.style.display = 'flex';
+                document.getElementById('rentCount').textContent = '0';
+                return;
+            }
+            
+            const labels = statusData.map(item => item.status);
+            const data = statusData.map(item => item.count);
+            const totalRents = data.reduce((a, b) => a + b, 0);
+            
+            document.getElementById('rentCount').textContent = totalRents;
+            
+            if (realRentChart) realRentChart.destroy();
+            
+            ctx.style.display = 'block';
+            emptyDiv.style.display = 'none';
+            
+            realRentChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: ['#ecc94b', '#4299e1', '#38a169', '#fc8181', '#9f7aea', '#4fd1c7']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const percentage = ((context.parsed / totalRents) * 100).toFixed(1);
+                                    return `${context.label}: ${context.parsed} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateRecentActivities(activities) {
+            if (!activities) return;
+            
+            const bookingsTable = document.getElementById('recentBookingsTable');
+            if (bookingsTable) {
+                if (activities.bookings && activities.bookings.length > 0) {
+                    bookingsTable.innerHTML = activities.bookings.map(booking => `
+                        <tr>
+                            <td>#${booking.id}</td>
+                            <td>${booking.equipment_name || 'N/A'}</td>
+                            <td>${booking.user_name || 'N/A'}</td>
+                            <td>₹${booking.total_amount || 0}</td>
+                            <td><span class="status-badge ${getStatusClass(booking.status)}">${booking.status || 'N/A'}</span></td>
+                        </tr>
+                    `).join('');
+                } else {
+                    bookingsTable.innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 20px; color: var(--gray);">
+                                No recent bookings
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+            
+            const rentsTable = document.getElementById('recentRentsTable');
+            if (rentsTable) {
+                if (activities.rentRequests && activities.rentRequests.length > 0) {
+                    rentsTable.innerHTML = activities.rentRequests.map(rent => `
+                        <tr>
+                            <td>#${rent.id}</td>
+                            <td>${rent.equipment_name || 'N/A'}</td>
+                            <td>${rent.user_name || 'N/A'}</td>
+                            <td>₹${rent.total_amount || 0}</td>
+                            <td><span class="status-badge ${getStatusClass(rent.status)}">${rent.status || 'N/A'}</span></td>
+                        </tr>
+                    `).join('');
+                } else {
+                    rentsTable.innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 20px; color: var(--gray);">
+                                No recent rent requests
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+            
+            const regTable = document.getElementById('recentRegTable');
+            if (regTable) {
+                if (activities.registrations && activities.registrations.length > 0) {
+                    regTable.innerHTML = activities.registrations.map(reg => `
+                        <tr>
+                            <td><span class="status-badge ${reg.type === 'farmer' ? 'status-approved' : 'status-pending'}">${reg.type}</span></td>
+                            <td>${reg.name || 'N/A'}</td>
+                            <td>${formatDate(reg.date)}</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    regTable.innerHTML = `
+                        <tr>
+                            <td colspan="3" style="text-align: center; padding: 20px; color: var(--gray);">
+                                No recent registrations
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+        }
+
+        function getStatusClass(status) {
+            if (!status) return 'status-pending';
+            
+            const statusLower = status.toLowerCase();
+            if (statusLower.includes('approved') || statusLower.includes('confirmed') || statusLower.includes('completed')) {
+                return 'status-approved';
+            } else if (statusLower.includes('rejected') || statusLower.includes('cancelled')) {
+                return 'status-rejected';
+            } else {
+                return 'status-pending';
+            }
+        }
+
+        function showReportsLoading(show) {
+            const loadingDiv = document.getElementById('reportsLoading');
+            const loadBtn = document.getElementById('loadRealReportsBtn');
+            
+            if (loadingDiv) loadingDiv.style.display = show ? 'block' : 'none';
+            if (loadBtn) {
+                loadBtn.disabled = show;
+                loadBtn.innerHTML = show ? 
+                    '<i class="fas fa-spinner fa-spin"></i> Loading...' : 
+                    '<i class="fas fa-sync-alt"></i> Load Data';
+            }
+        }
+
+        function initializeRealReports() {
+            const loadBtn = document.getElementById('loadRealReportsBtn');
+            if (loadBtn) {
+                loadBtn.addEventListener('click', loadRealReports);
+            }
+            
+            const reportNav = document.querySelector('.nav-link[data-section="reports"]');
+            if (reportNav) {
+                reportNav.addEventListener('click', function() {
+                    setTimeout(loadRealReports, 100);
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initDashboard();
+            initializeRealReports();
+            
+            // Add loan filter event listeners
+            const loanSearch = document.getElementById('loanSearch');
+            const loanStatusFilter = document.getElementById('loanStatusFilter');
+            const loanRiskFilter = document.getElementById('loanRiskFilter');
+            
+            if (loanSearch) loanSearch.addEventListener('input', debounce(loadLoans, 500));
+            if (loanStatusFilter) loanStatusFilter.addEventListener('change', loadLoans);
+            if (loanRiskFilter) loanRiskFilter.addEventListener('change', loadLoans);
+        });
+
+        // API functions
+        async function fetchData(url) {
+            try {
+                const response = await fetch(url, {
+                    credentials: 'same-origin'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                showNotification('Error fetching data. Please try again.', 'error');
+                return null;
+            }
+        }
+        
+        async function postData(url, data = {}) {
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Error posting data:', error);
+                showNotification('Error processing request. Please try again.', 'error');
+                return null;
+            }
+        }
+
+        // Data loading functions
+        async function loadStats() {
+            statsData = await fetchData('/api/admin/stats');
+            
+            if (statsData) {
+                document.getElementById('totalFarmers').textContent = statsData.total_farmers || 0;
+                document.getElementById('totalVendors').textContent = statsData.total_vendors || 0;
+                document.getElementById('totalEquipment').textContent = statsData.total_equipment || 0;
+                document.getElementById('totalBookings').textContent = statsData.total_bookings || 0;
+                document.getElementById('pendingFarmers').textContent = statsData.pending_farmers || 0;
+                document.getElementById('pendingVendors').textContent = statsData.pending_vendors || 0;
+            }
+        }
+        
+        async function loadFarmers() {
+            const statusFilter = farmerStatusFilter.value;
+            const searchTerm = farmerSearch.value;
+            
+            let url = '/api/admin/farmers';
+            const params = new URLSearchParams();
+            
+            if (statusFilter !== 'all') {
+                params.append('status', statusFilter);
+            }
+            
+            if (searchTerm) {
+                params.append('search', searchTerm);
+            }
+            
+            if (params.toString()) {
+                url += '?' + params.toString();
+            }
+            
+            farmersData = await fetchData(url);
+            
+            if (farmersData && farmersData.error) {
+                if (farmersData.error === 'Unauthorized') {
+                    showNotification('Session expired. Please log in again.', 'error');
+                    setTimeout(() => {
+                        window.location.href = "{{ url_for('admin_login') }}";
+                    }, 2000);
+                }
+                return;
+            }
+            
+            renderFarmersTable();
+            updateRecentRegistrations();
+        }
+        
+        async function loadVendors() {
+            const statusFilter = vendorStatusFilter.value;
+            const searchTerm = vendorSearch.value;
+            
+            let url = '/api/admin/vendors';
+            const params = new URLSearchParams();
+            
+            if (statusFilter !== 'all') {
+                params.append('status', statusFilter);
+            }
+            
+            if (searchTerm) {
+                params.append('search', searchTerm);
+            }
+            
+            if (params.toString()) {
+                url += '?' + params.toString();
+            }
+            
+            vendorsData = await fetchData(url);
+            
+            if (vendorsData && vendorsData.error) {
+                if (vendorsData.error === 'Unauthorized') {
+                    showNotification('Session expired. Please log in again.', 'error');
+                    setTimeout(() => {
+                        window.location.href = "{{ url_for('admin_login') }}";
+                    }, 2000);
+                }
+                return;
+            }
+            
+            renderVendorsTable();
+            updateRecentRegistrations();
+        }
+
+        // Equipment functions
+        async function loadEquipment() {
+            equipmentData = await fetchData('/api/admin/equipment');
+            
+            if (equipmentData && equipmentData.error) {
+                if (equipmentData.error === 'Unauthorized') {
+                    showNotification('Session expired. Please log in again.', 'error');
+                    setTimeout(() => {
+                        window.location.href = "{{ url_for('admin_login') }}";
+                    }, 2000);
+                }
+                return;
+            }
+            
+            filterAndRenderEquipment();
+        }
+
+        function filterAndRenderEquipment() {
+            if (!equipmentData) return;
+            
+            const statusFilter = equipmentStatusFilter.value;
+            const categoryFilter = equipmentCategoryFilter.value;
+            const searchTerm = equipmentSearch.value.toLowerCase();
+            
+            let filteredData = [...equipmentData];
+            
+            if (statusFilter !== 'all') {
+                filteredData = filteredData.filter(equipment => 
+                    equipment.status === statusFilter
+                );
+            }
+            
+            if (categoryFilter !== 'all') {
+                filteredData = filteredData.filter(equipment => 
+                    equipment.category === categoryFilter
+                );
+            }
+            
+            if (searchTerm) {
+                filteredData = filteredData.filter(equipment => 
+                    equipment.name.toLowerCase().includes(searchTerm) ||
+                    equipment.vendor_name.toLowerCase().includes(searchTerm) ||
+                    equipment.location.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            renderEquipmentTable(filteredData);
+        }
+
+        function renderEquipmentTable(equipmentList) {
+            equipmentTable.innerHTML = '';
+            
+            if (!equipmentList || equipmentList.length === 0) {
+                equipmentTable.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 20px; color: var(--gray);">No equipment found.</td></tr>';
+                return;
+            }
+            
+            equipmentList.forEach(equipment => {
+                const row = document.createElement('tr');
+                
+                const statusClass = 
+                    equipment.status === 'available' ? 'status-approved' : 
+                    equipment.status === 'unavailable' ? 'status-rejected' : 
+                    'status-pending';
+                
+                const stockStatus = equipment.stock_quantity <= 0 ? 'Out of Stock' : 
+                                   equipment.stock_quantity <= (equipment.min_stock_threshold || 2) ? 'Low Stock' : 'In Stock';
+                
+                const stockClass = equipment.stock_quantity <= 0 ? 'status-rejected' : 
+                                  equipment.stock_quantity <= (equipment.min_stock_threshold || 2) ? 'status-pending' : 'status-approved';
+                
+                row.innerHTML = `
+                    <td>#${equipment.id}</td>
+                    <td>${equipment.name}</td>
+                    <td>${equipment.category}</td>
+                    <td>${equipment.vendor_name}</td>
+                    <td>₹${equipment.price}/${equipment.price_unit}</td>
+                    <td>${equipment.location}</td>
+                    <td><span class="status-badge ${stockClass}">${stockStatus} (${equipment.stock_quantity})</span></td>
+                    <td><span class="status-badge ${statusClass}">${equipment.status}</span></td>
+                    <td>${formatDate(equipment.created_date)}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm view-equipment-btn" data-id="${equipment.id}">View</button>
+                    </td>
+                `;
+                
+                equipmentTable.appendChild(row);
+            });
+            
+            document.querySelectorAll('.view-equipment-btn').forEach(btn => {
+                btn.addEventListener('click', () => viewEquipment(btn.dataset.id));
+            });
+        }
+
+        function viewEquipment(equipmentId) {
+            const equipment = equipmentData.find(e => e.id === parseInt(equipmentId));
+            if (!equipment) return;
+            
+            document.getElementById('equipmentModalTitle').textContent = `Equipment Details - ${equipment.name}`;
+            
+            const modalBody = document.getElementById('equipmentModalBody');
+            modalBody.innerHTML = `
+                <div class="detail-row">
+                    <div class="detail-label">Equipment ID:</div>
+                    <div class="detail-value">#${equipment.id}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Name:</div>
+                    <div class="detail-value">${equipment.name}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Category:</div>
+                    <div class="detail-value">${equipment.category}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Description:</div>
+                    <div class="detail-value">${equipment.description || 'No description available'}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Pricing:</div>
+                    <div class="detail-value">₹${equipment.price} per ${equipment.price_unit}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">${equipment.location}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Vendor Details:</div>
+                    <div class="detail-value">${equipment.vendor_name}<br>${equipment.vendor_contact}<br>${equipment.vendor_phone}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Stock Information:</div>
+                    <div class="detail-value">
+                        Current Stock: ${equipment.stock_quantity}<br>
+                        Low Stock Alert: ${equipment.min_stock_threshold || 2}<br>
+                        Status: <span class="status-badge ${equipment.stock_quantity <= 0 ? 'status-rejected' : equipment.stock_quantity <= (equipment.min_stock_threshold || 2) ? 'status-pending' : 'status-approved'}">
+                            ${equipment.stock_quantity <= 0 ? 'Out of Stock' : equipment.stock_quantity <= (equipment.min_stock_threshold || 2) ? 'Low Stock' : 'In Stock'}
+                        </span>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Availability:</div>
+                    <div class="detail-value">
+                        <span class="status-badge ${equipment.status === 'available' ? 'status-approved' : equipment.status === 'unavailable' ? 'status-rejected' : 'status-pending'}">
+                            ${equipment.status}
+                        </span>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Added Date:</div>
+                    <div class="detail-value">${formatDate(equipment.created_date)}</div>
+                </div>
+                ${equipment.image_url ? `
+                <div class="detail-row">
+                    <div class="detail-label">Image:</div>
+                    <div class="detail-value">
+                        <img src="${equipment.image_url}" alt="${equipment.name}" style="max-width: 200px; max-height: 150px; border-radius: 8px;">
+                    </div>
+                </div>
+                ` : ''}
+            `;
+            
+            const modalFooter = document.getElementById('equipmentModalFooter');
+            modalFooter.innerHTML = `
+                <button class="btn btn-primary" id="closeEquipmentModal">Close</button>
+            `;
+            
+            document.getElementById('closeEquipmentModal').addEventListener('click', () => {
+                equipmentModal.style.display = 'none';
+            });
+            
+            equipmentModal.style.display = 'flex';
+        }
+
+        // Booking functions
+        async function loadBookings() {
+            bookingsData = await fetchData('/api/admin/bookings');
+            
+            if (bookingsData && bookingsData.error) {
+                if (bookingsData.error === 'Unauthorized') {
+                    showNotification('Session expired. Please log in again.', 'error');
+                    setTimeout(() => {
+                        window.location.href = "{{ url_for('admin_login') }}";
+                    }, 2000);
+                }
+                return;
+            }
+            
+            filterAndRenderBookings();
+        }
+
+        function filterAndRenderBookings() {
+            if (!bookingsData) return;
+            
+            const statusFilter = bookingStatusFilter.value;
+            const dateFilter = bookingDateFilter.value;
+            const searchTerm = bookingSearch.value.toLowerCase();
+            
+            let filteredData = [...bookingsData];
+            
+            if (statusFilter !== 'all') {
+                filteredData = filteredData.filter(booking => 
+                    booking.status === statusFilter
+                );
+            }
+            
+            if (dateFilter !== 'all') {
+                filteredData = filterBookingsByDate(filteredData, dateFilter);
+            }
+            
+            if (searchTerm) {
+                filteredData = filteredData.filter(booking => 
+                    (booking.farmer_name && booking.farmer_name.toLowerCase().includes(searchTerm)) ||
+                    (booking.vendor_name && booking.vendor_name.toLowerCase().includes(searchTerm)) ||
+                    (booking.equipment_name && booking.equipment_name.toLowerCase().includes(searchTerm))
+                );
+            }
+            
+            renderBookingsTable(filteredData);
+        }
+
+        if (bookingSearch) {
+            bookingSearch.addEventListener('input', () => filterAndRenderBookings());
+        }
+
+        if (bookingStatusFilter) {
+            bookingStatusFilter.addEventListener('change', () => filterAndRenderBookings());
+        }
+
+        if (bookingDateFilter) {
+            bookingDateFilter.addEventListener('change', () => filterAndRenderBookings());
+        }
+
+        function filterBookingsByDate(bookings, dateFilter) {
+            if (!bookings || bookings.length === 0) return [];
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            return bookings.filter(booking => {
+                if (!booking.start_date) return false;
+                
+                const startDate = new Date(booking.start_date);
+                startDate.setHours(0, 0, 0, 0);
+                
+                switch (dateFilter) {
+                    case 'today':
+                        return startDate.getTime() === today.getTime();
+                        
+                    case 'week':
+                        const weekStart = new Date(today);
+                        weekStart.setDate(today.getDate() - today.getDay());
+                        
+                        const weekEnd = new Date(weekStart);
+                        weekEnd.setDate(weekStart.getDate() + 6);
+                        
+                        return startDate >= weekStart && startDate <= weekEnd;
+                        
+                    case 'month':
+                        return startDate.getMonth() === today.getMonth() && 
+                               startDate.getFullYear() === today.getFullYear();
+                        
+                    case 'upcoming':
+                        return startDate >= today;
+                        
+                    case 'past':
+                        return startDate < today;
+                        
+                    default:
+                        return true;
+                }
+            });
+        }
+
+        function renderBookingsTable(bookingsList) {
+            bookingsTable.innerHTML = '';
+            
+            if (!bookingsList || bookingsList.length === 0) {
+                bookingsTable.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 20px; color: var(--gray);">No bookings found.</td></tr>';
+                return;
+            }
+            
+            bookingsList.forEach(booking => {
+                const row = document.createElement('tr');
+                
+                const statusClass = 
+                    booking.status === 'pending' ? 'status-pending' : 
+                    booking.status === 'confirmed' ? 'status-approved' : 
+                    booking.status === 'cancelled' ? 'status-rejected' : 
+                    'status-pending';
+                
+                const startDate = booking.start_date ? formatDate(booking.start_date) : 'N/A';
+                const bookingDate = booking.booking_date ? formatDate(booking.booking_date) : 'N/A';
+                
+                row.innerHTML = `
+                    <td>#${booking.id}</td>
+                    <td>${booking.farmer_name || 'N/A'}</td>
+                    <td>${booking.vendor_name || 'N/A'}</td>
+                    <td>${booking.equipment_name || 'N/A'}</td>
+                    <td>₹${booking.total_amount?.toLocaleString() || '0'}</td>
+                    <td><span class="status-badge ${statusClass}">${booking.status}</span></td>
+                    <td>${bookingDate}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm view-booking-btn" data-id="${booking.id}">View</button>
+                        <button class="btn btn-danger btn-sm delete-booking-btn" data-id="${booking.id}">Delete</button>
+                    </td>
+                `;
+                
+                bookingsTable.appendChild(row);
+            });
+            
+            document.querySelectorAll('.view-booking-btn').forEach(btn => {
+                btn.addEventListener('click', () => viewBooking(btn.dataset.id));
+            });
+            
+            document.querySelectorAll('.delete-booking-btn').forEach(btn => {
+                btn.addEventListener('click', () => deleteBooking(btn.dataset.id));
+            });
+        }
+
+        function calculateDuration(startDate, endDate) {
+            if (!startDate || !endDate) return 0;
+            
+            try {
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                const diffTime = Math.abs(end - start);
+                return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            } catch (error) {
+                console.error('Error calculating duration:', error);
+                return 0;
+            }
+        }
+
+        async function viewBooking(bookingId) {
+            const booking = await fetchData(`/api/admin/booking/${bookingId}`);
+            
+            if (!booking) return;
+            
+            document.getElementById('bookingModalTitle').textContent = `Booking Details - #${booking.id}`;
+            
+            const modalBody = document.getElementById('bookingModalBody');
+            modalBody.innerHTML = `
+                <div class="detail-row">
+                    <div class="detail-label">Booking ID:</div>
+                    <div class="detail-value">#${booking.id}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Farmer Details:</div>
+                    <div class="detail-value">${booking.farmer_name} (${booking.farmer_phone})<br>${booking.farmer_location}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Vendor Details:</div>
+                    <div class="detail-value">${booking.vendor_name} (${booking.vendor_phone})</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Equipment:</div>
+                    <div class="detail-value">${booking.equipment_name}<br>₹${booking.equipment_price}/day</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Pricing:</div>
+                    <div class="detail-value">
+                        Base Amount: ₹${booking.total_amount?.toLocaleString()}<br>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Special Requests:</div>
+                    <div class="detail-value">${booking.special_requests || 'None'}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Status:</div>
+                    <div class="detail-value">
+                        <span class="status-badge ${booking.status === 'pending' ? 'status-pending' : booking.status === 'confirmed' ? 'status-approved' : 'status-rejected'}">
+                            ${booking.status}
+                        </span>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Booking Date:</div>
+                    <div class="detail-value">${formatDate(booking.booking_date)}</div>
+                </div>
+            `;
+            
+            const modalFooter = document.getElementById('bookingModalFooter');
+            modalFooter.innerHTML = `
+                <button class="btn btn-danger" id="modalDeleteBooking" data-id="${booking.id}">Delete Booking</button>
+                <button class="btn btn-primary" id="closeBookingModal">Close</button>
+            `;
+            
+            document.getElementById('modalDeleteBooking').addEventListener('click', () => {
+                deleteBooking(booking.id);
+                bookingModal.style.display = 'none';
+            });
+            
+            document.getElementById('closeBookingModal').addEventListener('click', () => {
+                bookingModal.style.display = 'none';
+            });
+            
+            bookingModal.style.display = 'flex';
+        }
+
+        async function deleteBooking(bookingId) {
+            if (confirm('Are you sure you want to delete this booking? This action cannot be undone.')) {
+                const result = await postData(`/api/admin/booking/delete/${bookingId}`);
+                
+                if (result && result.success) {
+                    showNotification('Booking deleted successfully!', 'success');
+                    loadBookings();
+                } else {
+                    showNotification('Failed to delete booking. Please try again.', 'error');
+                }
+            }
+        }
+
+        // Broadcast functions
+        async function loadBroadcastStats() {
+            try {
+                const statsData = await fetchData('/api/admin/stats');
+                
+                if (statsData) {
+                    const totalFarmers = statsData.total_farmers || 0;
+                    document.getElementById('totalUsers').textContent = totalFarmers;
+                } else {
+                    document.getElementById('totalUsers').textContent = '0';
+                }
+            } catch (error) {
+                console.error('Error loading broadcast stats:', error);
+                document.getElementById('totalUsers').textContent = 'Error';
+            }
+        }
+
+        async function loadBroadcastHistory() {
+            try {
+                broadcastHistory = await fetchData('/api/admin/broadcast-history');
+                
+                if (broadcastHistory && broadcastHistory.error) {
+                    if (broadcastHistory.error === 'Unauthorized') {
+                        showNotification('Session expired. Please log in again.', 'error');
+                        setTimeout(() => {
+                            window.location.href = "{{ url_for('admin_login') }}";
+                        }, 2000);
+                    }
+                    return;
+                }
+                
+                renderBroadcastHistory();
+            } catch (error) {
+                console.error('Error loading broadcast history:', error);
+            }
+        }
+
+        function renderBroadcastHistory() {
+            broadcastHistoryTable.innerHTML = '';
+            
+            if (!broadcastHistory || broadcastHistory.length === 0) {
+                broadcastHistoryTable.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 20px; color: var(--gray);">
+                            No broadcast history found.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            broadcastHistory.forEach(broadcast => {
+                const row = document.createElement('tr');
+                
+                const statusClass = 
+                    broadcast.status === 'sent' ? 'status-sent' : 
+                    broadcast.status === 'failed' ? 'status-failed' : 
+                    'status-pending';
+                
+                row.innerHTML = `
+                    <td>#${broadcast.id}</td>
+                    <td>${broadcast.title}</td>
+                    <td>${broadcast.type}</td>
+                    <td>${broadcast.recipients_count || 0} farmers</td>
+                    <td><span class="message-status ${statusClass}">${broadcast.status}</span></td>
+                    <td>${formatDate(broadcast.sent_date)}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm view-broadcast-btn" data-id="${broadcast.id}">View</button>
+                    </td>
+                `;
+                
+                broadcastHistoryTable.appendChild(row);
+            });
+        }
+
+        // Preview message functionality
+        if (previewMessageBtn) {
+            previewMessageBtn.addEventListener('click', () => {
+                const title = document.getElementById('messageTitle').value;
+                const content = document.getElementById('messageContent').value;
+                const type = document.getElementById('messageType').value;
+                
+                if (!title || !content) {
+                    showNotification('Please enter title and content to preview', 'error');
+                    return;
+                }
+                
+                previewContent.innerHTML = `
+                    <h5>${title}</h5>
+                    <p style="color: #666; margin-bottom: 10px; font-style: italic;">Type: ${type}</p>
+                    <div style="background: white; padding: 15px; border-radius: 5px; border: 1px solid #eee;">
+                        ${content.replace(/\n/g, '<br>')}
+                    </div>
+                    <p style="margin-top: 10px; color: #888; font-size: 0.9em;">
+                        This message will be sent to all registered farmers.
+                    </p>
+                `;
+                
+                messagePreview.style.display = 'block';
+            });
+        }
+
+        // Send broadcast message
+        if (broadcastForm) {
+            broadcastForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const title = document.getElementById('messageTitle').value;
+                const content = document.getElementById('messageContent').value;
+                const type = document.getElementById('messageType').value;
+                
+                if (!title || !content) {
+                    showNotification('Please enter both title and content', 'error');
+                    return;
+                }
+                
+                const confirmed = confirm(`Are you sure you want to send this broadcast to all farmers?
+                
+Title: ${title}
+Type: ${type}
+
+This will send an SMS to all registered farmers.`);
+                
+                if (!confirmed) {
+                    return;
+                }
+                
+                const originalBtnText = sendBroadcastBtn.innerHTML;
+                sendBroadcastBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                sendBroadcastBtn.disabled = true;
+                
+                try {
+                    const result = await postData('/api/admin/broadcast', {
+                        title: title,
+                        content: content,
+                        type: type
+                    });
+                    
+                    if (result && result.success) {
+                        showNotification(result.message || 'Broadcast sent successfully!', 'success');
+                        
+                        broadcastForm.reset();
+                        messagePreview.style.display = 'none';
+                        
+                        loadBroadcastHistory();
+                    } else {
+                        showNotification(result.error || 'Failed to send broadcast', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error sending broadcast:', error);
+                    showNotification('Error sending broadcast', 'error');
+                } finally {
+                    sendBroadcastBtn.innerHTML = originalBtnText;
+                    sendBroadcastBtn.disabled = false;
+                }
+            });
+        }
+
+        function renderFarmersTable() {
+            farmersTable.innerHTML = '';
+            
+            if (!farmersData || farmersData.length === 0) {
+                farmersTable.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 20px; color: var(--gray);">No farmers found.</td></tr>';
+                return;
+            }
+            
+            farmersData.forEach(farmer => {
+                const row = document.createElement('tr');
+                
+                const statusClass = 
+                    farmer.status === 'pending' ? 'status-pending' : 
+                    farmer.status === 'approved' ? 'status-approved' : 
+                    'status-rejected';
+                
+                const rtcButton = farmer.rtc_document ? 
+                    `<button class="btn btn-info btn-sm view-rtc-btn" data-filename="${farmer.rtc_document}" title="View RTC Document">
+                        <i class="fas fa-file-pdf"></i> RTC
+                    </button>` : 
+                    'No RTC';
+                
+                row.innerHTML = `
+                    <td>#${farmer.id}</td>
+                    <td>${farmer.full_name} ${farmer.last_name}</td>
+                    <td>${farmer.email || 'N/A'}</td>
+                    <td>${farmer.phone}</td>
+                    <td>${farmer.farm_location}</td>
+                    <td>${farmer.farm_size || 'N/A'} acres</td>
+                    <td>${formatDate(farmer.registration_date)}</td>
+                    <td>${rtcButton}</td>
+                    <td><span class="status-badge ${statusClass}">${farmer.status}</span></td>
+                    <td>
+                        <button class="btn btn-primary btn-sm view-farmer-btn" data-id="${farmer.id}">View</button>
+                        ${farmer.status === 'pending' ? 
+                            `<button class="btn btn-success btn-sm approve-farmer-btn" data-id="${farmer.id}">Approve</button>
+                             <button class="btn btn-danger btn-sm reject-farmer-btn" data-id="${farmer.id}">Reject</button>` : ''}
+                    </td>
+                `;
+                
+                farmersTable.appendChild(row);
+            });
+            
+            document.querySelectorAll('.view-rtc-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const filename = btn.dataset.filename;
+                    viewRTCDocument(filename);
+                });
+            });
+        }
+
+        function viewRTCDocument(filename) {
+            if (!filename) {
+                showNotification('No RTC document available for this farmer', 'error');
+                return;
+            }
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.cssText = `
+                display: flex;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                z-index: 9999;
+                align-items: center;
+                justify-content: center;
+            `;
+            
+            const modalContent = document.createElement('div');
+            modalContent.className = 'modal-content';
+            modalContent.style.cssText = `
+                background: white;
+                border-radius: 12px;
+                width: 90%;
+                max-width: 800px;
+                max-height: 90vh;
+                overflow-y: auto;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            `;
+            
+            const fileExtension = filename.split('.').pop().toLowerCase();
+            const isImage = ['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension);
+            
+            const documentUrl = `/static/uploads/equipment/${filename}`;
+            
+            modalContent.innerHTML = `
+                <div class="modal-header" style="padding: 20px 25px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="font-size: 1.4rem; color: #2d3748;">RTC Document Viewer</h3>
+                    <button class="close-modal" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #a0aec0;">&times;</button>
+                </div>
+                <div class="modal-body" style="padding: 25px; max-height: 70vh; overflow-y: auto;">
+                    <div style="text-align: center;">
+                        <h4 style="margin-bottom: 15px; color: #4a5568;">${filename}</h4>
+                        
+                        ${isImage ? `
+                            <img src="${documentUrl}" alt="RTC Document" style="max-width: 100%; max-height: 600px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        ` : `
+                            <div style="padding: 20px; background: #f7fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                <i class="fas fa-file-pdf" style="font-size: 3rem; color: #e53e3e; margin-bottom: 10px;"></i>
+                                <p style="color: #4a5568;">PDF Document - Click to download</p>
+                            </div>
+                        `}
+                        
+                        <div style="margin-top: 20px;">
+                            <a href="${documentUrl}" target="_blank" class="btn btn-primary" style="margin-right: 10px;">
+                                <i class="fas fa-external-link-alt"></i> Open in New Tab
+                            </a>
+                            <a href="${documentUrl}" download="${filename}" class="btn btn-success">
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+            
+            const closeBtn = modalContent.querySelector('.close-modal');
+            closeBtn.addEventListener('click', () => {
+                document.body.removeChild(modal);
+            });
+            
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    document.body.removeChild(modal);
+                }
+            });
+        }
+
+        function renderVendorsTable() {
+            vendorsTable.innerHTML = '';
+            
+            if (!vendorsData || vendorsData.length === 0) {
+                vendorsTable.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 20px; color: var(--gray);">No vendors found.</td></tr>';
+                return;
+            }
+            
+            vendorsData.forEach(vendor => {
+                const row = document.createElement('tr');
+                
+                const statusClass = 
+                    vendor.status === 'pending' ? 'status-pending' : 
+                    vendor.status === 'approved' ? 'status-approved' : 
+                    'status-rejected';
+                
+                const docStatusClass = 
+                    vendor.document_verified === 'verified' ? 'status-approved' : 
+                    vendor.document_verified === 'rejected' ? 'status-rejected' : 
+                    'status-pending';
+                
+                const documentIndicator = vendor.business_document ? 
+                    `<a href="${vendor.document_url || '#'}" target="_blank" title="View Document">
+                        <i class="fas fa-file-pdf"></i> View
+                    </a>` : 
+                    'No Document';
+                
+                row.innerHTML = `
+                    <td>#${vendor.id}</td>
+                    <td>${vendor.business_name}</td>
+                    <td>${vendor.contact_name}</td>
+                    <td>${vendor.email}</td>
+                    <td>${vendor.phone}</td>
+                    <td>${vendor.service_type}</td>
+                    <td>${documentIndicator}</td>
+                    <td>
+                        <span class="status-badge ${docStatusClass}">
+                            ${vendor.document_verified || 'pending'}
+                        </span>
+                    </td>
+                    <td>${formatDate(vendor.registration_date)}</td>
+                    <td><span class="status-badge ${statusClass}">${vendor.status}</span></td>
+                    <td>
+                        <button class="btn btn-primary btn-sm view-vendor-btn" data-id="${vendor.id}">View</button>
+                        ${vendor.status === 'pending' ? 
+                            `<button class="btn btn-success btn-sm approve-vendor-btn" data-id="${vendor.id}">Approve</button>
+                             <button class="btn btn-danger btn-sm reject-vendor-btn" data-id="${vendor.id}">Reject</button>` : ''}
+                        ${vendor.business_document ? 
+                            `<div style="margin-top: 5px;">
+                                <button class="btn btn-info btn-sm verify-doc-btn" data-id="${vendor.id}" data-status="verified" style="font-size: 0.7rem; padding: 2px 6px;">Verify Doc</button>
+                                <button class="btn btn-warning btn-sm reject-doc-btn" data-id="${vendor.id}" data-status="rejected" style="font-size: 0.7rem; padding: 2px 6px;">Reject Doc</button>
+                            </div>` : ''}
+                    </td>
+                `;
+                
+                vendorsTable.appendChild(row);
+            });
+        }
+
+        async function verifyVendorDocument(vendorId, status) {
+            if (confirm(`Are you sure you want to mark this document as ${status}?`)) {
+                const result = await postData('/api/admin/vendor/document/verify', {
+                    vendor_id: vendorId,
+                    status: status
+                });
+                
+                if (result && result.success) {
+                    showNotification(`Document marked as ${status} successfully!`, 'success');
+                    loadVendors();
+                } else {
+                    showNotification('Failed to update document status: ' + (result.error || 'Unknown error'), 'error');
+                }
+            }
+        }
+
+        async function viewFarmer(farmerId) {
+            console.log("Fetching farmer details for ID:", farmerId);
+            
+            const farmer = await fetchData(`/api/admin/farmer/${farmerId}`);
+            
+            if (!farmer) {
+                showNotification('Failed to load farmer details', 'error');
+                return;
+            }
+            
+            document.getElementById('farmerModalTitle').textContent = `Farmer Details - ${farmer.full_name} ${farmer.last_name}`;
+            
+            const modalBody = document.getElementById('farmerModalBody');
+            modalBody.innerHTML = `
+                <div class="detail-row">
+                    <div class="detail-label">Farmer ID:</div>
+                    <div class="detail-value">#${farmer.id}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Full Name:</div>
+                    <div class="detail-value">${farmer.full_name} ${farmer.last_name || ''}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Email:</div>
+                    <div class="detail-value">${farmer.email || 'N/A'}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Phone:</div>
+                    <div class="detail-value">${farmer.phone || 'N/A'}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Farm Location:</div>
+                    <div class="detail-value">${farmer.farm_location || 'N/A'}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Farm Size:</div>
+                    <div class="detail-value">${farmer.farm_size || 'N/A'} acres</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Crop Types:</div>
+                    <div class="detail-value">${farmer.crop_types || 'N/A'}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Additional Info:</div>
+                    <div class="detail-value">${farmer.additional_info || 'N/A'}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Registration Date:</div>
+                    <div class="detail-value">${formatDate(farmer.registration_date)}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Status:</div>
+                    <div class="detail-value"><span class="status-badge ${farmer.status === 'pending' ? 'status-pending' : farmer.status === 'approved' ? 'status-approved' : 'status-rejected'}">${farmer.status || 'N/A'}</span></div>
+                </div>
+            `;
+            
+            const modalFooter = document.getElementById('farmerModalFooter');
+            if (farmer.status === 'pending') {
+                modalFooter.innerHTML = `
+                    <button class="btn btn-success" id="modalApproveFarmer" data-id="${farmer.id}">Approve</button>
+                    <button class="btn btn-danger" id="modalRejectFarmer" data-id="${farmer.id}">Reject</button>
+                    <button class="btn btn-primary" id="closeFarmerModal">Close</button>
+                `;
+                
+                document.getElementById('modalApproveFarmer').addEventListener('click', () => {
+                    approveFarmer(farmer.id);
+                    farmerModal.style.display = 'none';
+                });
+                
+                document.getElementById('modalRejectFarmer').addEventListener('click', () => {
+                    rejectFarmer(farmer.id);
+                    farmerModal.style.display = 'none';
+                });
+            } else {
+                modalFooter.innerHTML = `
+                    <button class="btn btn-primary" id="closeFarmerModal">Close</button>
+                `;
+            }
+            
+            document.getElementById('closeFarmerModal').addEventListener('click', () => {
+                farmerModal.style.display = 'none';
+            });
+            
+            farmerModal.style.display = 'flex';
+        }
+
+        async function viewVendor(vendorId) {
+            console.log("Fetching vendor details for ID:", vendorId);
+            
+            const vendor = await fetchData(`/api/admin/vendor/${vendorId}`);
+            
+            if (!vendor) {
+                showNotification('Failed to load vendor details', 'error');
+                return;
+            }
+            
+            document.getElementById('vendorModalTitle').textContent = `Vendor Details - ${vendor.business_name}`;
+            
+            const modalBody = document.getElementById('vendorModalBody');
+            modalBody.innerHTML = `
+                <div class="detail-row">
+                    <div class="detail-label">Vendor ID:</div>
+                    <div class="detail-value">#${vendor.id}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Business Name:</div>
+                    <div class="detail-value">${vendor.business_name}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Contact Person:</div>
+                    <div class="detail-value">${vendor.contact_name}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Email:</div>
+                    <div class="detail-value">${vendor.email || 'N/A'}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Phone:</div>
+                    <div class="detail-value">${vendor.phone || 'N/A'}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Service Type:</div>
+                    <div class="detail-value">${vendor.service_type || 'N/A'}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Description:</div>
+                    <div class="detail-value">${vendor.description || 'N/A'}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Registration Date:</div>
+                    <div class="detail-value">${formatDate(vendor.registration_date)}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Status:</div>
+                    <div class="detail-value"><span class="status-badge ${vendor.status === 'pending' ? 'status-pending' : vendor.status === 'approved' ? 'status-approved' : 'status-rejected'}">${vendor.status || 'N/A'}</span></div>
+                </div>
+                ${vendor.business_document ? `
+                <div class="detail-row">
+                    <div class="detail-label">Business Document:</div>
+                    <div class="detail-value">
+                        <a href="${vendor.document_url || '#'}" target="_blank" class="btn btn-sm btn-info">
+                            <i class="fas fa-file-pdf"></i> View Document
+                        </a>
+                        <span class="status-badge ${vendor.document_verified === 'verified' ? 'status-approved' : vendor.document_verified === 'rejected' ? 'status-rejected' : 'status-pending'}">
+                            ${vendor.document_verified || 'pending'}
+                        </span>
+                    </div>
+                </div>
+                ` : ''}
+            `;
+            
+            const modalFooter = document.getElementById('vendorModalFooter');
+            if (vendor.status === 'pending') {
+                modalFooter.innerHTML = `
+                    <button class="btn btn-success" id="modalApproveVendor" data-id="${vendor.id}">Approve</button>
+                    <button class="btn btn-danger" id="modalRejectVendor" data-id="${vendor.id}">Reject</button>
+                    <button class="btn btn-primary" id="closeVendorModal">Close</button>
+                `;
+                
+                document.getElementById('modalApproveVendor').addEventListener('click', () => {
+                    approveVendor(vendor.id);
+                    vendorModal.style.display = 'none';
+                });
+                
+                document.getElementById('modalRejectVendor').addEventListener('click', () => {
+                    rejectVendor(vendor.id);
+                    vendorModal.style.display = 'none';
+                });
+            } else {
+                modalFooter.innerHTML = `
+                    <button class="btn btn-primary" id="closeVendorModal">Close</button>
+                `;
+            }
+            
+            document.getElementById('closeVendorModal').addEventListener('click', () => {
+                vendorModal.style.display = 'none';
+            });
+            
+            vendorModal.style.display = 'flex';
+        }
+
+        // Approval functions
+        async function approveFarmer(farmerId) {
+            if (confirm('Are you sure you want to approve this farmer?')) {
+                const result = await postData(`/api/admin/farmer/approve/${farmerId}`);
+                
+                if (result && result.success) {
+                    showNotification('Farmer approved successfully!', 'success');
+                    loadFarmers();
+                    loadStats();
+                } else {
+                    showNotification('Failed to approve farmer. Please try again.', 'error');
+                }
+            }
+        }
+        
+        async function rejectFarmer(farmerId) {
+            if (confirm('Are you sure you want to reject this farmer?')) {
+                const result = await postData(`/api/admin/farmer/reject/${farmerId}`);
+                
+                if (result && result.success) {
+                    showNotification('Farmer rejected successfully!', 'success');
+                    loadFarmers();
+                    loadStats();
+                } else {
+                    showNotification('Failed to reject farmer. Please try again.', 'error');
+                }
+            }
+        }
+        
+        async function approveVendor(vendorId) {
+            if (confirm('Are you sure you want to approve this vendor?')) {
+                const result = await postData(`/api/admin/vendor/approve/${vendorId}`);
+                
+                if (result && result.success) {
+                    showNotification('Vendor approved successfully!', 'success');
+                    loadVendors();
+                    loadStats();
+                } else {
+                    showNotification('Failed to approve vendor. Please try again.', 'error');
+                }
+            }
+        }
+        
+        async function rejectVendor(vendorId) {
+            if (confirm('Are you sure you want to reject this vendor?')) {
+                const result = await postData(`/api/admin/vendor/reject/${vendorId}`);
+                
+                if (result && result.success) {
+                    showNotification('Vendor rejected successfully!', 'success');
+                    loadVendors();
+                    loadStats();
+                } else {
+                    showNotification('Failed to reject vendor. Please try again.', 'error');
+                }
+            }
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            
+            try {
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return 'Invalid Date';
+                
+                const options = { year: 'numeric', month: 'short', day: 'numeric' };
+                return date.toLocaleDateString(undefined, options);
+            } catch (error) {
+                console.error('Error formatting date:', error);
+                return 'N/A';
+            }
+        }
+        
+        function updateRecentRegistrations() {
+            const recentRegistrations = document.getElementById('recentRegistrations');
+            if (!recentRegistrations) return;
+            
+            recentRegistrations.innerHTML = '';
+            
+            if ((!farmersData || farmersData.length === 0) && (!vendorsData || vendorsData.length === 0)) {
+                recentRegistrations.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: var(--gray);">No recent registrations.</td></tr>';
+                return;
+            }
+            
+            const allRegistrations = [
+                ...(farmersData || []).map(f => ({ ...f, type: 'Farmer' })),
+                ...(vendorsData || []).map(v => ({ ...v, type: 'Vendor' }))
+            ].sort((a, b) => new Date(b.registration_date) - new Date(a.registration_date))
+            .slice(0, 5);
+            
+            allRegistrations.forEach(reg => {
+                const row = document.createElement('tr');
+                
+                const statusClass = 
+                    reg.status === 'pending' ? 'status-pending' : 
+                    reg.status === 'approved' ? 'status-approved' : 
+                    'status-rejected';
+                
+                const name = reg.type === 'Farmer' ? `${reg.full_name} ${reg.last_name}` : reg.business_name;
+                const contact = reg.phone;
+                const location = reg.type === 'Farmer' ? reg.farm_location : reg.service_type;
+                
+                row.innerHTML = `
+                    <td>${name}</td>
+                    <td>${reg.type}</td>
+                    <td>${contact}</td>
+                    <td>${location}</td>
+                    <td>${formatDate(reg.registration_date)}</td>
+                    <td><span class="status-badge ${statusClass}">${reg.status}</span></td>
+                    <td>
+                        <button class="btn btn-primary btn-sm view-recent-btn" data-type="${reg.type.toLowerCase()}" data-id="${reg.id}">View</button>
+                    </td>
+                `;
+                
+                recentRegistrations.appendChild(row);
+            });
+            
+            document.querySelectorAll('.view-recent-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (btn.dataset.type === 'farmer') {
+                        viewFarmer(btn.dataset.id);
+                    } else {
+                        viewVendor(btn.dataset.id);
+                    }
+                });
+            });
+        }
+        
+        function showNotification(message, type = 'info') {
+            const existingNotifications = document.querySelectorAll('.notification');
+            existingNotifications.forEach(notif => notif.remove());
+            
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 5px;
+                color: white;
+                z-index: 10000;
+                font-weight: 500;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                max-width: 350px;
+            `;
+            
+            if (type === 'success') {
+                notification.style.backgroundColor = '#38a169';
+            } else if (type === 'error') {
+                notification.style.backgroundColor = '#e53e3e';
+            } else {
+                notification.style.backgroundColor = '#3182ce';
+            }
+            
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+
+        // Navigation functions
+        function setActiveNavLink(sectionId) {
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            const activeLink = document.querySelector(`.nav-link[data-section="${sectionId}"]`);
+            if (activeLink) {
+                activeLink.classList.add('active');
+            }
+        }
+
+        function showSection(sectionId) {
+            contentSections.forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            const section = document.getElementById(`${sectionId}-section`);
+            if (section) {
+                section.classList.add('active');
+                
+                if (sectionId === 'farmers') {
+                    loadFarmers();
+                } else if (sectionId === 'vendors') {
+                    loadVendors();
+                } else if (sectionId === 'dashboard') {
+                    loadStats();
+                } else if (sectionId === 'equipment') {
+                    loadEquipment();
+                } else if (sectionId === 'bookings') {
+                    loadBookings();
+                } else if (sectionId === 'broadcast') {
+                    loadBroadcastStats();
+                    loadBroadcastHistory();
+                } else if (sectionId === 'loans') {
+                    loadLoans();
+                } else if (sectionId === 'reports') {
+                    loadRealReports();
+                }
+            }
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        function initDashboard() {
+            loadStats();
+            loadLoans();
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const sectionId = link.getAttribute('data-section');
+                    setActiveNavLink(sectionId);
+                    showSection(sectionId);
+                });
+            });
+            
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('close-modal')) {
+                    const modals = document.querySelectorAll('.modal');
+                    modals.forEach(modal => {
+                        modal.style.display = 'none';
+                    });
+                }
+                
+                if (e.target.classList.contains('modal')) {
+                    e.target.style.display = 'none';
+                }
+            });
+            
+            farmerSearch.addEventListener('input', () => loadFarmers());
+            vendorSearch.addEventListener('input', () => loadVendors());
+            farmerStatusFilter.addEventListener('change', () => loadFarmers());
+                        vendorStatusFilter.addEventListener('change', () => loadVendors());
+            
+            equipmentSearch.addEventListener('input', () => filterAndRenderEquipment());
+            equipmentStatusFilter.addEventListener('change', () => filterAndRenderEquipment());
+            equipmentCategoryFilter.addEventListener('change', () => filterAndRenderEquipment());
+            
+            bookingSearch.addEventListener('input', () => filterAndRenderBookings());
+            bookingStatusFilter.addEventListener('change', () => filterAndRenderBookings());
+            bookingDateFilter.addEventListener('change', () => filterAndRenderBookings());
+
+            // Event Delegation for ALL dynamically created buttons
+            document.addEventListener('click', function(e) {
+                // FARMER ACTION BUTTONS
+                if (e.target.classList.contains('view-farmer-btn')) {
+                    const button = e.target;
+                    const farmerId = button.dataset.id;
+                    console.log("👨‍🌾 Clicked view farmer button:", farmerId);
+                    viewFarmer(farmerId);
+                }
+                else if (e.target.classList.contains('approve-farmer-btn')) {
+                    const button = e.target;
+                    const farmerId = button.dataset.id;
+                    console.log("✅ Clicked approve farmer button:", farmerId);
+                    approveFarmer(farmerId);
+                }
+                else if (e.target.classList.contains('reject-farmer-btn')) {
+                    const button = e.target;
+                    const farmerId = button.dataset.id;
+                    console.log("❌ Clicked reject farmer button:", farmerId);
+                    rejectFarmer(farmerId);
+                }
+                
+                // VENDOR ACTION BUTTONS
+                else if (e.target.classList.contains('view-vendor-btn')) {
+                    const button = e.target;
+                    const vendorId = button.dataset.id;
+                    console.log("👨‍💼 Clicked view vendor button:", vendorId);
+                    viewVendor(vendorId);
+                }
+                else if (e.target.classList.contains('approve-vendor-btn')) {
+                    const button = e.target;
+                    const vendorId = button.dataset.id;
+                    console.log("✅ Clicked approve vendor button:", vendorId);
+                    approveVendor(vendorId);
+                }
+                else if (e.target.classList.contains('reject-vendor-btn')) {
+                    const button = e.target;
+                    const vendorId = button.dataset.id;
+                    console.log("❌ Clicked reject vendor button:", vendorId);
+                    rejectVendor(vendorId);
+                }
+                else if (e.target.classList.contains('verify-doc-btn')) {
+                    const button = e.target;
+                    const vendorId = button.dataset.id;
+                    console.log("📄 Clicked verify doc button:", vendorId);
+                    verifyVendorDocument(vendorId, 'verified');
+                }
+                else if (e.target.classList.contains('reject-doc-btn')) {
+                    const button = e.target;
+                    const vendorId = button.dataset.id;
+                    console.log("📄 Clicked reject doc button:", vendorId);
+                    verifyVendorDocument(vendorId, 'rejected');
+                }
+                
+                // RECENT REGISTRATION BUTTONS
+                else if (e.target.classList.contains('view-recent-btn')) {
+                    const button = e.target;
+                    const type = button.dataset.type;
+                    const id = button.dataset.id;
+                    
+                    if (type === 'farmer') {
+                        console.log("📅 Clicked view recent farmer:", id);
+                        viewFarmer(id);
+                    } else {
+                        console.log("📅 Clicked view recent vendor:", id);
+                        viewVendor(id);
+                    }
+                }
+                
+                // EQUIPMENT BUTTONS
+                else if (e.target.classList.contains('view-equipment-btn')) {
+                    const button = e.target;
+                    const equipmentId = button.dataset.id;
+                    console.log("🚜 Clicked view equipment button:", equipmentId);
+                    viewEquipment(equipmentId);
+                }
+                
+                // BOOKING BUTTONS
+                else if (e.target.classList.contains('view-booking-btn')) {
+                    const button = e.target;
+                    const bookingId = button.dataset.id;
+                    console.log("📅 Clicked view booking button:", bookingId);
+                    viewBooking(bookingId);
+                }
+                else if (e.target.classList.contains('delete-booking-btn')) {
+                    const button = e.target;
+                    const bookingId = button.dataset.id;
+                    console.log("🗑️ Clicked delete booking button:", bookingId);
+                    deleteBooking(bookingId);
+                }
+                
+                // LOAN BUTTONS
+                else if (e.target.classList.contains('view-loan-btn')) {
+                    const button = e.target;
+                    const loanId = button.dataset.id;
+                    console.log("💰 Clicked view loan button:", loanId);
+                    viewLoanDetails(loanId);
+                }
+                else if (e.target.classList.contains('payment-loan-btn')) {
+                    const button = e.target;
+                    const loanId = button.dataset.id;
+                    console.log("💵 Clicked payment loan button:", loanId);
+                    selectedLoanId = loanId;
+                    openPaymentModal();
+                }
+                
+                // MODAL CLOSE BUTTONS
+                else if (e.target.classList.contains('close-modal')) {
+                    const modals = document.querySelectorAll('.modal');
+                    modals.forEach(modal => {
+                        modal.style.display = 'none';
+                    });
+                }
+                
+                // MODAL CLICK OUTSIDE
+                else if (e.target.classList.contains('modal')) {
+                    e.target.style.display = 'none';
+                }
+            });
+            
+            // Auto-refresh data every 60 seconds
+            setInterval(() => {
+                const activeSection = document.querySelector('.content-section.active');
+                if (!activeSection) return;
+                
+                const activeId = activeSection.id.replace('-section', '');
+                
+                if (activeId === 'dashboard') {
+                    loadStats();
+                } else if (activeId === 'farmers') {
+                    loadFarmers();
+                } else if (activeId === 'vendors') {
+                    loadVendors();
+                } else if (activeId === 'equipment') {
+                    loadEquipment();
+                } else if (activeId === 'bookings') {
+                    loadBookings();
+                } else if (activeId === 'broadcast') {
+                    loadBroadcastStats();
+                    loadBroadcastHistory();
+                } else if (activeId === 'loans') {
+                    loadLoans();
+                }
+            }, 60000);
+        }
+
+        // Make sure all loan functions are accessible globally
+        window.loadLoans = loadLoans;
+        window.viewLoanDetails = viewLoanDetails;
+        window.openPaymentModal = openPaymentModal;
+        window.closePaymentModal = closePaymentModal;
+        window.closeLoanModal = closeLoanModal;
+        window.openDefaultModal = openDefaultModal;
+        window.closeDefaultModal = closeDefaultModal;
+        window.submitPayment = submitPayment;
+        window.confirmDefault = confirmDefault;
+        window.exportLoanReport = exportLoanReport;
+    </script>
+    
+    <style>
+        .goog-te-banner-frame {
+            display: none !important;
+        }
+        .goog-te-gadget {
+            font-size: 0 !important;
+        }
+        /* Additional loan management styles */
+        .status-completed {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+        .btn-warning {
+            background: #ed8936;
+            color: white;
+        }
+        .btn-warning:hover {
+            background: #f6ad55;
+        }
+        .details-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary);
+        }
+        .details-section h4 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--gray-light);
+            padding-bottom: 5px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--secondary);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+</html>

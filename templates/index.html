@@ -1,0 +1,3813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Dashboard - Lend A Hand</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2c5282;
+            --primary-light: #4299e1;
+            --secondary: #38a169;
+            --secondary-light: #68d391;
+            --accent: #e53e3e;
+            --light: #f7fafc;
+            --dark: #2d3748;
+            --gray: #a0aec0;
+            --gray-light: #e2e8f0;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --radius: 12px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+        }
+        
+        .rent-requests-list .card {
+            border-left: 4px solid var(--primary);
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+            padding: 20px;
+        }
+
+        .rent-requests-list .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .rent-requests-list .item-badge {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+        }
+
+        .request-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .request-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+         .goog-te-banner-frame,
+    .goog-te-banner,
+    .goog-te-banner-wrapper,
+    .skiptranslate,
+    #goog-gt-tt,
+    .goog-te-balloon-frame,
+    .goog-tooltip,
+    .goog-tooltip:hover,
+    .goog-text-highlight {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        width: 0 !important;
+        position: absolute !important;
+    }
+    
+    /* Prevent body shift */
+    body {
+        top: 0px !important;
+        position: static !important;
+    }
+    
+    /* Hide the translation menu if it appears */
+    .goog-te-menu-frame {
+        display: none !important;
+    }
+        /* ================= REVIEW SECTION STYLES ================= */
+.reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.review-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--primary);
+    transition: all 0.3s ease;
+}
+
+.review-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--gray-light);
+}
+
+.reviewer-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.reviewer-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.reviewer-details h4 {
+    margin: 0 0 5px 0;
+    color: var(--dark);
+}
+
+.review-date {
+    color: var(--gray);
+    font-size: 0.85rem;
+}
+
+.review-rating {
+    display: flex;
+    gap: 3px;
+    margin: 10px 0;
+}
+
+.review-rating i {
+    color: #f59e0b;
+    font-size: 1.1rem;
+}
+
+.review-content {
+    margin-top: 15px;
+}
+
+.review-title {
+    color: var(--primary);
+    margin: 0 0 10px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.review-comment {
+    color: var(--dark);
+    line-height: 1.6;
+    margin: 0 0 15px 0;
+}
+
+.review-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--gray-light);
+}
+
+.equipment-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.equipment-image {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f5f5f5;
+}
+
+.equipment-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.equipment-details h5 {
+    margin: 0 0 5px 0;
+    color: var(--dark);
+    font-size: 0.9rem;
+}
+
+.equipment-category {
+    font-size: 0.8rem;
+    color: var(--gray);
+    background: #f7fafc;
+    padding: 3px 8px;
+    border-radius: 12px;
+}
+
+.order-type-badge {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.badge-booking {
+    background: #bee3f8;
+    color: #2c5282;
+}
+
+.badge-rental {
+    background: #c6f6d5;
+    color: #2f855a;
+}
+
+/* No Reviews State */
+.no-reviews {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.no-reviews i {
+    font-size: 4rem;
+    color: var(--gray-light);
+    margin-bottom: 20px;
+    display: block;
+}
+
+.no-reviews h3 {
+    color: var(--dark);
+    margin-bottom: 10px;
+    font-size: 1.5rem;
+}
+
+.no-reviews p {
+    color: var(--gray);
+    font-size: 1rem;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* Review Summary */
+.review-summary {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.rating-overview {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rating-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--dark);
+}
+
+.rating-stars-large {
+    display: flex;
+    gap: 5px;
+}
+
+.rating-stars-large i {
+    color: #f59e0b;
+    font-size: 1.5rem;
+}
+
+.rating-distribution {
+    flex: 1;
+}
+
+.rating-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+}
+
+.rating-label {
+    width: 60px;
+    font-size: 0.9rem;
+    color: var(--gray);
+}
+
+.rating-bar-container {
+    flex: 1;
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.rating-bar-fill {
+    height: 100%;
+    background: #f59e0b;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .review-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .reviewer-info {
+        width: 100%;
+    }
+    
+    .review-meta {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    
+    .review-summary {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .rating-overview {
+        width: 100%;
+        justify-content: center;
+    }
+}
+        /* Cancellation Request Styles */
+.cancellation-request-card {
+    transition: all 0.3s ease;
+    border: 1px solid #e2e8f0;
+}
+
+.cancellation-request-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.cancellation-request-card.processed {
+    opacity: 0.8;
+    background: #f7fafc;
+}
+
+.request-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.stat-badge {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* Status badges */
+.status-pending { background: #feebcb; color: #b45309; }
+.status-approved { background: #c6f6d5; color: #2f855a; }
+.status-completed { background: #bee3f8; color: #2c5282; }
+.status-rejected { background: #fed7d7; color: #c53030; }
+
+.badge-available { background: #c6f6d5; color: #2f855a; }
+.badge-unavailable { background: #fed7d7; color: #c53030; }
+.badge-maintenance { background: #feebcb; color: #b45309; }
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .request-actions {
+        flex-direction: column;
+    }
+    
+    .request-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .cancellation-stats {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 260px;
+            background: var(--primary);
+            color: white;
+            padding: 20px 0;
+            height: 100vh;
+            position: fixed;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .logo {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .logo h1 {
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo span {
+            color: var(--secondary-light);
+        }
+        
+        .nav-links {
+            list-style: none;
+            padding: 0 15px;
+        }
+        
+        .nav-links li {
+            margin-bottom: 5px;
+        }
+        
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            text-decoration: none;
+            color: white;
+            border-radius: 8px;
+            transition: all 0.3s;
+            gap: 12px;
+            cursor: pointer;
+        }
+        
+        .nav-links a:hover, .nav-links a.active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-links i {
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 20px 30px;
+            transition: margin-left 0.3s ease;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--gray-light);
+        }
+        
+        .welcome h2 {
+            font-size: 1.8rem;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+        
+        .welcome p {
+            color: var(--gray);
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .notification-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: white;
+            border: 1px solid var(--gray-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            color: var(--dark);
+        }
+        
+        .notification-btn::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+        }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        
+        .user-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary-light);
+        }
+        
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+        
+        .stat-card {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .stat-icon.blue {
+            background: rgba(66, 153, 225, 0.2);
+            color: var(--primary-light);
+        }
+        
+        .stat-icon.green {
+            background: rgba(104, 211, 145, 0.2);
+            color: var(--secondary);
+        }
+        
+        .stat-icon.orange {
+            background: rgba(237, 137, 54, 0.2);
+            color: #ed8936;
+        }
+        
+        .stat-icon.red {
+            background: rgba(245, 101, 101, 0.2);
+            color: #f56565;
+        }
+        
+        .stat-info h3 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .stat-info p {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+        
+        /* Content Sections */
+        .content-section {
+            background: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+            display: none;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .section-header h2 {
+            font-size: 1.5rem;
+            color: var(--dark);
+        }
+        .btn-warning {
+    background: #ed8936;
+    color: white;
+}
+
+.btn-warning:hover {
+    background: #f6ad55;
+}
+
+.status-pending { background: #feebcb; color: #b45309; }
+.status-approved { background: #c6f6d5; color: #2f855a; }
+.status-completed { background: #bee3f8; color: #2c5282; }
+.status-rejected { background: #fed7d7; color: #c53030; }
+        
+        /* Items Grid */
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .item-card {
+            border: 1px solid var(--gray-light);
+            border-radius: var(--radius);
+            overflow: hidden;
+            transition: all 0.3s;
+            background: white;
+        }
+        
+        .item-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .item-img {
+            height: 180px;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .item-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .item-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .badge-available {
+            background: #c6f6d5;
+            color: #2f855a;
+        }
+        
+        .badge-unavailable {
+            background: #fed7d7;
+            color: #c53030;
+        }
+        
+        .badge-maintenance {
+            background: #feebcb;
+            color: #b45309;
+        }
+        
+        .item-info {
+            padding: 15px;
+        }
+        
+        .item-info h3 {
+            margin-bottom: 10px;
+            color: var(--dark);
+            font-size: 1.2rem;
+        }
+        
+        .item-info p {
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        
+        .item-price {
+            font-size: 1.3rem;
+            color: var(--secondary);
+            font-weight: 700;
+            margin: 10px 0;
+        }
+        
+        .item-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            color: var(--gray);
+            font-size: 0.85rem;
+        }
+        
+        .item-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-light);
+        }
+        
+        .btn-success {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: var(--secondary-light);
+        }
+        
+        .btn-danger {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #fc8181;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--gray-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            font-size: 1.4rem;
+            color: var(--dark);
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray);
+        }
+        
+        .modal-body {
+            padding: 25px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--gray-light);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-light);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        .modal-footer {
+            padding: 20px 25px;
+            border-top: 1px solid var(--gray-light);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        /* Table Styles */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            min-width: 600px;
+        }
+        
+        .data-table th, .data-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-light);
+        }
+        
+        .data-table th {
+            background-color: var(--gray-light);
+            font-weight: 600;
+        }
+        
+        .data-table tr:hover {
+            background-color: #f9fafb;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            width: 100%;
+        }
+        
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--secondary);
+            color: white;
+            padding: 15px 25px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            z-index: 3000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        /* Review Styles */
+        .review-card {
+            border: 1px solid var(--gray-light);
+            border-radius: var(--radius);
+            padding: 15px;
+            margin-bottom: 15px;
+            background: white;
+        }
+        
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .reviewer {
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .review-date {
+            color: var(--gray);
+            font-size: 0.85rem;
+        }
+        
+        .review-rating {
+            color: #f59e0b;
+            margin-bottom: 10px;
+        }
+        
+        .review-content {
+            color: var(--dark);
+            line-height: 1.5;
+        }
+        
+        /* Rent Specific Styles */
+        .rent-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .rent-status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .status-rented {
+            background: #fed7d7;
+            color: #c53030;
+        }
+        
+        .status-available {
+            background: #c6f6d5;
+            color: #2f855a;
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 80px;
+            }
+            
+            .sidebar .logo h1 span, 
+            .sidebar .nav-links a span {
+                display: none;
+            }
+            
+            .sidebar .logo h1 {
+                justify-content: center;
+            }
+            
+            .sidebar .nav-links a {
+                justify-content: center;
+                padding: 15px;
+            }
+            
+            .main-content {
+                margin-left: 80px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-cards {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .items-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .data-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .dashboard-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+            
+            .sidebar {
+                transform: translateX(-100%);
+                width: 260px;
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .header-actions {
+                align-self: stretch;
+                justify-content: space-between;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 2000;
+                background: var(--primary);
+                color: white;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: var(--shadow);
+            }
+        }
+        
+        .status-pending {
+            background: #feebcb;
+            color: #b45309;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-approved {
+            background: #c6f6d5;
+            color: #2f855a;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-rejected {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-completed {
+            background: #bee3f8;
+            color: #2c5282;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .rent-requests-list .card {
+            border-left: 4px solid var(--primary);
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+            padding: 20px;
+        }
+
+        .rent-requests-list .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .request-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .request-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .cancellation-note i {
+    margin-right: 5px;
+}
+/* Keep badge inside card, not floating */
+.item-badge {
+    position: static !important;   /* removes floating behavior */
+    display: inline-block !important;
+    margin-top: 8px;
+}
+/* Equipment badges stay fixed on image */
+.item-img .item-badge {
+    position: absolute !important;
+    top: 15px;
+    right: 15px;
+    z-index: 2;
+}
+
+    </style>
+</head>
+<body>
+   
+<!-- Google Translate for this page -->
+<div id="google_translate_element"></div>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" id="mobileMenuBtn" style="display: none;">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage"></span>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar" id="sidebar">
+        <div class="logo">
+            <h1><i class="fas fa-hands-helping"></i> <span>Lend A Hand</span></h1>
+        </div>
+        
+        <ul class="nav-links">
+            <li><a href="#" class="nav-link active" data-section="dashboard"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
+            <li><a href="#" class="nav-link" data-section="equipment"><i class="fas fa-tractor"></i> <span>Equipment</span></a></li>
+            <li><a href="#" class="nav-link" data-section="bookings"><i class="fas fa-calendar-alt"></i> <span>Bookings</span></a></li>
+            <li><a href="#" class="nav-link" data-section="rent-requests"><i class="fas fa-clipboard-list"></i> <span>Rent Requests</span></a></li>
+            <li><a href="#" class="nav-link" data-section="reviews"><i class="fas fa-star"></i> <span>Reviews</span></a></li>
+            <li><a href="#" class="nav-link" data-section="cancellation-requests"><i class="fas fa-ban"></i> <span>Cancellation Requests</span></a></li>
+            <li><a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
+        </ul>
+    </div>
+    
+    <!-- Main Content -->
+       <!-- Main Content -->
+   <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+       <div class="header">
+    <div class="welcome">
+        <h2>Welcome, {{ contact_name }}! 👋</h2>
+                <p>Manage your equipment and track rentals</p>
+                {% if vendor_email %}
+                <p style="color: var(--gray); font-size: 0.9rem; margin-top: 5px;">
+                    <i class="fas fa-envelope"></i> {{ vendor_email }}
+                </p>
+                {% endif %}
+                {% if business_name %}
+                <p style="color: var(--gray); font-size: 0.9rem;">
+                    <i class="fas fa-building"></i> {{ business_name }}
+                </p>
+                {% endif %}
+            </div>
+            
+            <div class="header-actions">
+                
+                <div class="user-profile">
+
+                    <span>{{ contact_name }}</span>
+                </div>
+            </div>
+        </div>
+        <!-- Dashboard Section -->
+        <div class="content-section active" id="dashboard-section">
+            <!-- Stats Cards -->
+            <div class="dashboard-cards">
+                <div class="card stat-card">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-tractor"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalEquipment">0</h3>
+                        <p>Total Equipment</p>
+                    </div>
+                </div>
+                
+                <div class="card stat-card">
+                    <div class="stat-icon green">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="activeBookings">0</h3>
+                        <p>Active Bookings</p>
+                    </div>
+                </div>
+                
+                <div class="card stat-card">
+                    <div class="stat-icon orange">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalCustomers">0</h3>
+                        <p>Total Customers</p>
+                    </div>
+                </div>
+                
+                <div class="card stat-card">
+                    <div class="stat-icon red">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="averageRating">0</h3>
+                        <p>Average Rating</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Equipment Category Counts -->
+            <div class="card" style="margin-bottom: 30px;">
+                <div class="section-header">
+                    <h2>Available Equipment by Category</h2>
+                </div>
+                <div class="dashboard-cards" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                    <div class="card stat-card">
+                        <div class="stat-icon blue">
+                            <i class="fas fa-tractor"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="tractorCount">0</h3>
+                            <p>Available Tractors</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card stat-card">
+                        <div class="stat-icon green">
+                            <i class="fas fa-harvest"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="harvesterCount">0</h3>
+                            <p>Available Harvesters</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card stat-card">
+                        <div class="stat-icon orange">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="ploughCount">0</h3>
+                            <p>Available Ploughs</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card stat-card">
+                        <div class="stat-icon red">
+                            <i class="fas fa-tint"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="irrigationCount">0</h3>
+                            <p>Available Irrigation</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card stat-card">
+                        <div class="stat-icon" style="background: rgba(159, 122, 234, 0.2); color: #9f7aea;">
+                            <i class="fas fa-ellipsis-h"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="otherCount">0</h3>
+                            <p>Available Other</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Equipment Section -->
+            <div class="card">
+                <div class="section-header">
+                    <h2>Recent Equipment</h2>
+                    <button class="btn btn-primary view-all-equipment">
+                        <i class="fas fa-list"></i> View All
+                    </button>
+                </div>
+                
+                <div class="items-grid" id="recentEquipment">
+                    <!-- Recent equipment will be loaded here -->
+                </div>
+            </div>
+            
+            <!-- Recent Bookings Section -->
+            <div class="card" style="margin-top: 30px;">
+                <div class="section-header">
+                    <h2>Recent Bookings</h2>
+                    <button class="btn btn-primary view-all-bookings">
+                        <i class="fas fa-list"></i> View All
+                    </button>
+                </div>
+                
+                <div class="table-container">
+                    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Customer</th>
+            <th>Equipment</th>
+            <th>Booking Date</th> <!-- Changed from "Period" -->
+            <th>Total</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="bookingsTable">
+                            <!-- Recent bookings will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Equipment Section -->
+        <div class="content-section" id="equipment-section">
+            <div class="section-header">
+                <h2>My Equipment</h2>
+                <button class="btn btn-success" id="addEquipmentBtn">
+                    <i class="fas fa-plus"></i> Add Equipment
+                </button>
+            </div>
+            
+            <div class="items-grid" id="equipmentGrid">
+                <!-- Equipment items will be loaded here -->
+            </div>
+        </div>
+        
+      <!-- Bookings Section -->
+<div class="content-section" id="bookings-section">
+    <div class="section-header">
+        <h2>All Bookings</h2>
+        <div>
+            <select id="bookingFilter" class="form-control" style="width: auto; display: inline-block; margin-right: 10px;">
+                <option value="all">All Bookings</option>
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+
+                <option value="cancelled">Cancelled</option>
+            </select>
+            <!-- Removed Export Button -->
+        </div>
+    </div>
+    
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Customer</th>
+                    <th>Equipment</th>
+                    <th>Period</th>
+                    <th>Total</th>
+                    
+                    <!-- Removed Actions column header -->
+                </tr>
+            </thead>
+            <tbody id="bookingsTable">
+                <!-- Bookings will be loaded here -->
+            </tbody>
+        </table>
+    </div>
+</div>
+        
+<!-- Cancellation Requests Section -->
+<div class="content-section" id="cancellation-requests-section">
+    <div class="section-header">
+        <h2><i class="fas fa-ban"></i> Cancellation Requests</h2>
+        <div>
+           
+            <button class="btn btn-primary" onclick="loadCancellationRequests()">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+    </div>
+    
+<div class="cancellation-stats" style="display: flex; gap: 15px; margin-bottom: 20px;">
+    <div class="stat-badge pending" style="background: #feebcb; color: #b45309; padding: 10px 15px; border-radius: 8px;">
+        <strong>Pending: <span id="pendingCount">0</span></strong>
+    </div>
+    <div class="stat-badge approved" style="background: #c6f6d5; color: #2f855a; padding: 10px 15px; border-radius: 8px;">
+        <strong>Approved: <span id="approvedCount">0</span></strong>
+    </div>
+    <div class="stat-badge rejected" style="background: #fed7d7; color: #c53030; padding: 10px 15px; border-radius: 8px;">
+        <strong>Rejected: <span id="rejectedCount">0</span></strong>
+    </div>
+
+        
+       
+    </div>
+    
+    <div id="cancellationRequestsContainer">
+        <!-- Cancellation requests will be loaded here -->
+    </div>
+</div>
+ 
+<!-- Add this to your vendor dashboard HTML (index.html) -->
+<div class="content-section" id="rent-requests-section">
+    <div class="section-header">
+        <h2>Rent Requests</h2>
+        <div>
+            <select id="rentRequestFilter" class="form-control" style="width: auto; display: inline-block;">
+                <option value="all">All Requests</option>
+
+            </select>
+        </div>
+    </div>
+    
+    <div id="rentRequestsContainer">
+        <!-- No Data Message -->
+        <div class="no-data" style="text-align: center; padding: 40px; color: var(--gray); display: none;">
+            <i class="fas fa-clipboard-list" style="font-size: 3rem; margin-bottom: 15px;"></i>
+            <h3>No Rent Requests</h3>
+            <p>You don't have any rent requests yet.</p>
+        </div>
+        
+        <!-- Rent Requests List -->
+        <div class="rent-requests-list">
+            <!-- Rent request cards will be dynamically inserted here -->
+            <!-- DATA STORAGE STRUCTURE:
+            Each rent request card will contain:
+            - Request ID (data-request-id)
+            - Farmer details (name, phone, email)
+            - Equipment details (name, ID)
+            - Rental dates and duration
+            - Pricing information
+            - Status and action buttons
+            -->
+        </div>
+    </div>
+</div>
+       <!-- Reviews Section -->
+<div class="content-section" id="reviews-section">
+    <div class="section-header">
+        <h2><i class="fas fa-star"></i> Customer Reviews</h2>
+        <div>
+            <select id="reviewSortFilter" class="form-control" style="width: auto; display: inline-block; margin-right: 10px;">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="highest">Highest Rating</option>
+                <option value="lowest">Lowest Rating</option>
+            </select>
+            <div class="review-summary" style="display: inline-block; background: #f7fafc; padding: 8px 15px; border-radius: 8px;">
+                <i class="fas fa-star" style="color: #f59e0b;"></i>
+                <strong id="averageRating">0.0</strong> / 5.0 • 
+                <span id="totalReviews">0</span> reviews
+            </div>
+        </div>
+    </div>
+    
+    <div id="vendorReviewsContainer">
+        <!-- No Data Message -->
+        <div class="no-reviews" style="text-align: center; padding: 40px; color: var(--gray); display: none;">
+            <i class="fas fa-star" style="font-size: 3rem; margin-bottom: 15px; color: var(--gray-light);"></i>
+            <h3>No Reviews Yet</h3>
+            <p>Your equipment hasn't received any reviews yet.</p>
+        </div>
+        
+        <!-- Reviews List -->
+        <div class="reviews-list" id="vendorReviewsList">
+            <!-- Reviews will be loaded here dynamically -->
+        </div>
+    </div>
+</div>
+<!-- In the Equipment Modal section (around line 450-550) -->
+<div class="modal" id="equipmentModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">Add New Equipment</h3>
+            <button class="close-modal">&times;</button>
+        </div>
+        
+        <div class="modal-body">
+            <form id="equipmentForm">
+                <input type="hidden" id="equipmentId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="equipmentName">Equipment Name *</label>
+                        <input type="text" id="equipmentName" class="form-control" placeholder="Enter equipment name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="equipmentCategory">Category *</label>
+                        <select id="equipmentCategory" class="form-control" required>
+                            <option value="">Select Category</option>
+                            <option value="tractor">Tractor</option>
+                            <option value="harvester">Harvester</option>
+                            <option value="plough">Plough</option>
+                            <option value="irrigation">Irrigation System</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="equipmentDescription">Description</label>
+                    <textarea id="equipmentDescription" class="form-control" rows="3" placeholder="Describe the equipment"></textarea>
+                </div>
+                
+                <!-- NEW: Rental Pricing Section -->
+                <div class="pricing-section" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <h4 style="margin-bottom: 15px; color: var(--primary);">
+                        <i class="fas fa-handshake"></i> Rental Pricing
+                    </h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="rentalPrice">Rental Price (₹) *</label>
+                            <input type="number" id="rentalPrice" class="form-control" min="0" step="0.01" placeholder="0.00" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="rentalPriceUnit">Rental Price Unit *</label>
+                            <select id="rentalPriceUnit" class="form-control" required>
+                                <option value="day">Per Day</option>
+                                <option value="hour">Per Hour</option>
+                                <option value="week">Per Week</option>
+                                <option value="month">Per Month</option>
+                            </select>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--gray); margin: 5px 0 0 0;">
+                        <i class="fas fa-info-circle"></i> This price will be used for rental/lease requests
+                    </p>
+                </div>
+                
+                <!-- NEW: Purchase/Booking Pricing Section -->
+                <div class="pricing-section" style="background: #f0f7ff; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <h4 style="margin-bottom: 15px; color: var(--primary);">
+                        <i class="fas fa-shopping-cart"></i> Purchase/Booking Pricing
+                    </h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="purchasePrice">Purchase Price (₹) *</label>
+                            <input type="number" id="purchasePrice" class="form-control" min="0" step="0.01" placeholder="0.00" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="purchaseUnit">Price Type</label>
+                            <select id="purchaseUnit" class="form-control">
+                                <option value="unit">Per Unit</option>
+                                <option value="session">Per Session</option>
+                                <option value="service">Service Charge</option>
+                            </select>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--gray); margin: 5px 0 0 0;">
+                        <i class="fas fa-info-circle"></i> This price will be used for direct purchases/bookings
+                    </p>
+                </div>
+                
+                <!-- Equipment Availability -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="equipmentLocation">Location *</label>
+                        <input type="text" id="equipmentLocation" class="form-control" placeholder="Enter location" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="availabilityStatus">Availability Status *</label>
+                        <select id="availabilityStatus" class="form-control" required>
+                            <option value="available">Available</option>
+                            <option value="unavailable">Unavailable</option>
+                            <option value="maintenance">Under Maintenance</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Stock Management -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="stockQuantity">Initial Stock Quantity *</label>
+                        <input type="number" id="stockQuantity" class="form-control" min="1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="minStockThreshold">Low Stock Alert Threshold *</label>
+                        <input type="number" id="minStockThreshold" class="form-control" min="1" required>
+                    </div>
+                </div>
+                
+                <!-- Equipment Type (NEW) -->
+                <div class="form-group">
+                    <label for="equipmentType">Equipment Type *</label>
+                    <select id="equipmentType" class="form-control" required>
+                        <option value="both">Available for Both Rental & Purchase</option>
+                        <option value="rental_only">Rental Only</option>
+                        <option value="purchase_only">Purchase Only</option>
+                    </select>
+                </div>
+                
+                <!-- Image Upload -->
+                <div class="form-group">
+                    <label for="equipmentImage">Equipment Image</label>
+                    <input type="file" id="equipmentImage" class="form-control" accept="image/*">
+                    <div id="imagePreviewContainer" style="margin-top: 10px; display: none;">
+                        <img id="imagePreview" src="#" alt="Image Preview" style="max-width: 100%; max-height: 200px;">
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="modal-footer">
+            <button class="btn btn-danger" id="cancelBtn">Cancel</button>
+            <button class="btn btn-success" id="saveEquipmentBtn">Save Equipment</button>
+        </div>
+    </div>
+</div>
+    
+  
+
+    <!-- Rent Modal -->
+    <div class="modal" id="rentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Give Equipment for Rent</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <form id="rentForm">
+                    <input type="hidden" id="rentEquipmentId">
+                    
+                    <!-- Equipment Info Display -->
+                    <div class="form-group" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <h4 id="rentEquipmentName" style="margin-bottom: 10px;"></h4>
+                        <p id="rentEquipmentDescription" style="margin: 0; color: var(--gray);"></p>
+                    </div>
+                    
+                    <!-- Rent Details -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="rentPricePerDay">Price Per Day (₹) *</label>
+                            <input type="number" id="rentPricePerDay" class="form-control" min="0" step="0.01" placeholder="Enter price per day" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="rentDays">Number of Days *</label>
+                            <input type="number" id="rentDays" class="form-control" min="1" placeholder="Enter number of days" required>
+                        </div>
+                    </div>
+                    
+                    <!-- Total Amount Display -->
+                    <div class="form-group" style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                        <div style="display: flex; justify-content: space-between; font-weight: bold;">
+                            <span>Total Rental Amount:</span>
+                            <span id="totalRentAmount">₹0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="rentNotes">Additional Notes</label>
+                        <textarea id="rentNotes" class="form-control" rows="3" placeholder="Any additional notes about this rental"></textarea>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="cancelRentBtn">Cancel</button>
+                <button class="btn btn-success" id="confirmRentBtn">Confirm Rental</button>
+            </div>
+        </div>
+    </div>
+
+   <script>
+  
+    // Data storage
+    let equipmentData = [];
+    let bookingsData = JSON.parse(localStorage.getItem('bookingsData')) || [];
+    let rentalsData = JSON.parse(localStorage.getItem('rentalsData')) || [];
+    let reviewsData = JSON.parse(localStorage.getItem('reviewsData')) || [];
+    let rentRequestsData = [];
+    
+    // DOM Elements
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('mainContent');
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const navLinks = document.querySelectorAll('.nav-link');
+    const contentSections = document.querySelectorAll('.content-section');
+    const equipmentGrid = document.getElementById('equipmentGrid');
+    const recentEquipment = document.getElementById('recentEquipment');
+    const recentBookingsTable = document.getElementById('recentBookingsTable');
+    const bookingsTable = document.getElementById('bookingsTable');
+    const reviewsContainer = document.getElementById('vendorReviewsList');
+    const modal = document.getElementById('equipmentModal');
+    const rentModal = document.getElementById('rentModal');
+    const addEquipmentBtn = document.getElementById('addEquipmentBtn');
+    const closeModalBtns = document.querySelectorAll('.close-modal');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const cancelRentBtn = document.getElementById('cancelRentBtn');
+    const saveEquipmentBtn = document.getElementById('saveEquipmentBtn');
+    const confirmRentBtn = document.getElementById('confirmRentBtn');
+    const modalTitle = document.getElementById('modalTitle');
+    const equipmentForm = document.getElementById('equipmentForm');
+    const rentForm = document.getElementById('rentForm');
+    const equipmentImage = document.getElementById('equipmentImage');
+    const imagePreview = document.getElementById('imagePreview');
+    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const totalEquipmentEl = document.getElementById('totalEquipment');
+    const activeBookingsEl = document.getElementById('activeBookings');
+    const totalCustomersEl = document.getElementById('totalCustomers');
+    const averageRatingEl = document.getElementById('averageRating');
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
+    const bookingFilter = document.getElementById('bookingFilter');
+    const rentRequestFilter = document.getElementById('rentRequestFilter');
+    
+  let cancellationRequests = [];
+
+// Load cancellation requests for vendor
+function loadCancellationRequests() {
+    const container = document.getElementById('cancellationRequestsContainer');
+    if (!container) {
+        console.error('❌ Cancellation container not found');
+        return;
+    }
+    
+    container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--gray);"><i class="fas fa-spinner fa-spin"></i> Loading cancellation requests...</div>';
+    
+    const filter = document.getElementById('cancellationFilter')?.value || 'all';
+    
+    fetch('/api/vendor/cancellation-requests')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(requests => {
+            cancellationRequests = requests;
+            displayCancellationRequests(requests, filter);
+            updateCancellationStats(requests);
+        })
+        .catch(error => {
+            console.error('❌ Error loading cancellation requests:', error);
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: var(--accent);">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Error Loading Requests</h3>
+                    <p>Failed to load cancellation requests. Please try again.</p>
+                    <button class="btn btn-primary" onclick="loadCancellationRequests()">
+                        <i class="fas fa-redo"></i> Retry
+                    </button>
+                </div>
+            `;
+        });
+}
+
+function displayCancellationRequests(requests, filter = 'all') {
+    const container = document.getElementById('cancellationRequestsContainer');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    // Filter requests
+    let filteredRequests = requests;
+    if (filter === 'pending') {
+        filteredRequests = requests.filter(req => req.status === 'pending');
+    } else if (filter === 'approved') {
+        filteredRequests = requests.filter(req => req.status === 'approved');
+    } else if (filter === 'rejected') {
+        filteredRequests = requests.filter(req => req.status === 'rejected');
+    }
+    
+    if (!filteredRequests || filteredRequests.length === 0) {
+        container.innerHTML = `
+            <div class="no-data" style="text-align: center; padding: 40px; color: var(--gray);">
+                <i class="fas fa-check-circle" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                <h3>No Cancellation Requests</h3>
+                <p>You don't have any ${filter !== 'all' ? filter + ' ' : ''}cancellation requests.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    console.log(`📋 Displaying ${filteredRequests.length} cancellation requests`);
+    
+    // Sort by requested date (newest first)
+    filteredRequests.sort((a, b) => new Date(b.requested_date) - new Date(a.requested_date));
+    
+    filteredRequests.forEach(request => {
+        const requestCard = createCancellationRequestCard(request);
+        container.appendChild(requestCard);
+    });
+}
+function createCancellationRequestCard(request) {
+    const card = document.createElement('div');
+    card.className = 'card cancellation-request-card';
+    card.style.marginBottom = '20px';
+    card.style.padding = '20px';
+    
+    // Set border color based on status
+    const borderColors = {
+        'pending': '#ed8936',
+        'approved': '#38a169',
+        'rejected': '#e53e3e'
+    };
+    
+    card.style.borderLeft = `4px solid ${borderColors[request.status] || '#ed8936'}`;
+    
+    const isProcessed = request.status === 'approved' || request.status === 'rejected';
+    
+    if (isProcessed) {
+        card.classList.add('processed');
+    }
+    
+    const requestedDate = new Date(request.requested_date).toLocaleDateString('en-IN', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
+    const orderDate = new Date(request.order_created_date).toLocaleDateString('en-IN', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
+    
+    let statusBadge = '';
+    if (request.status === 'approved') {
+        statusBadge = '<span class="item-badge badge-available"><i class="fas fa-check"></i> APPROVED</span>';
+    } else if (request.status === 'rejected') {
+        statusBadge = '<span class="item-badge badge-unavailable"><i class="fas fa-times"></i> REJECTED</span>';
+    } else {
+        statusBadge = '<span class="item-badge badge-maintenance"><i class="fas fa-clock"></i> PENDING</span>';
+    }
+    
+    // Check if it's booking or rent
+    const isBooking = request.order_type === 'booking';
+    
+    let actionButtons = '';
+    if (request.status === 'pending') {
+        actionButtons = `
+            <div class="request-actions">
+                <button class="btn btn-success approve-cancellation" 
+                        data-cancellation-id="${request.cancellation_id}" 
+                        data-order-type="${request.order_type}" 
+                        data-order-id="${request.order_id}">
+                    <i class="fas fa-check"></i> Approve & Restock
+                </button>
+                <button class="btn btn-danger reject-cancellation" 
+                        data-cancellation-id="${request.cancellation_id}" 
+                        data-order-type="${request.order_type}" 
+                        data-order-id="${request.order_id}">
+                    <i class="fas fa-times"></i> Reject
+                </button>
+            </div>
+        `;
+    } else if (request.status === 'approved') {
+        actionButtons = `
+            <div class="request-actions" style="opacity: 0.7;">
+                <span class="item-badge badge-available">
+                    <i class="fas fa-check"></i> Approved on ${new Date(request.processed_date).toLocaleDateString()}
+                </span>
+            </div>
+        `;
+    } else if (request.status === 'rejected') {
+        actionButtons = `
+            <div class="request-actions" style="opacity: 0.7;">
+                <span class="item-badge badge-unavailable">
+                    <i class="fas fa-times"></i> Rejected on ${new Date(request.processed_date).toLocaleDateString()}
+                </span>
+            </div>
+        `;
+    }
+    
+    card.innerHTML = `
+        <div class="request-header">
+            <div>
+                <h3 style="margin: 0 0 5px 0;">${request.equipment_name}</h3>
+                <p style="margin: 0; color: var(--gray); font-size: 0.9em;">
+                    ${isBooking ? '📅 Booking' : '🔄 Rental'} • Requested ${requestedDate}
+                </p>
+            </div>
+            ${statusBadge}
+        </div>
+        
+        <div class="customer-info" style="background: #f7fafc; padding: 15px; border-radius: 8px; margin: 15px 0;">
+            <h4 style="margin: 0 0 10px 0; color: var(--dark);"><i class="fas fa-user"></i> Customer Details</h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                <div><strong>Name:</strong> ${request.user_name}</div>
+                <div><strong>Phone:</strong> ${request.user_phone}</div>
+                <div><strong>Email:</strong> ${request.user_email || 'Not provided'}</div>
+            </div>
+        </div>
+        
+        <div class="request-details">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                <div><strong>Order Type:</strong> ${isBooking ? 'Booking' : 'Rental'}</div>
+                ${isBooking ? 
+                    `<div><strong>Booking Date:</strong> ${orderDate}</div>` : 
+                    `<div><strong>Rental Period:</strong> ${request.start_date} to ${request.end_date}</div>`
+                }
+                <div><strong>Total Amount:</strong> ₹${request.total_amount}</div>
+                <div><strong>Previous Status:</strong> <span class="item-badge ${getStatusClass(request.previous_status)}">${request.previous_status}</span></div>
+            </div>
+            
+            <div style="background: #fffaf0; padding: 15px; border-radius: 8px; border-left: 4px solid #ed8936;">
+                <strong><i class="fas fa-comment"></i> Cancellation Reason:</strong>
+                <p style="margin: 8px 0 0 0; color: var(--dark);">${request.cancellation_reason || 'No reason provided'}</p>
+            </div>
+        </div>
+        
+        ${actionButtons}
+    `;
+    
+    // Add event listeners for action buttons if pending
+    if (request.status === 'pending') {
+        const approveBtn = card.querySelector('.approve-cancellation');
+        const rejectBtn = card.querySelector('.reject-cancellation');
+        
+        approveBtn.addEventListener('click', function() {
+            const cancellationId = this.getAttribute('data-cancellation-id');
+            const orderType = this.getAttribute('data-order-type');
+            const orderId = this.getAttribute('data-order-id');
+            approveCancellationRequest(cancellationId, orderType, orderId);
+        });
+        
+        rejectBtn.addEventListener('click', function() {
+            const cancellationId = this.getAttribute('data-cancellation-id');
+            const orderType = this.getAttribute('data-order-type');
+            const orderId = this.getAttribute('data-order-id');
+            rejectCancellationRequest(cancellationId, orderType, orderId);
+        });
+    }
+    
+    return card;
+}
+function updateCancellationStats(requests) {
+    const pendingCount = requests.filter(req => req.status === 'pending').length;
+    const approvedCount = requests.filter(req => req.status === 'approved').length;
+    const rejectedCount = requests.filter(req => req.status === 'rejected').length;
+    
+    document.getElementById('pendingCount').textContent = pendingCount;
+    document.getElementById('approvedCount').textContent = approvedCount;
+    document.getElementById('rejectedCount').textContent = rejectedCount;
+}
+
+function getStatusClass(status) {
+    const statusClasses = {
+        'pending': 'status-pending',
+        'confirmed': 'status-approved',
+        'approved': 'status-approved',
+        'completed': 'status-completed',
+        'rejected': 'status-rejected'
+    };
+    return statusClasses[status] || 'status-pending';
+}
+
+function approveCancellationRequest(cancellationId, orderType, orderId) {
+    if (!confirm('Are you sure you want to APPROVE this cancellation?\n\n✅ Equipment will be restocked\n✅ Customer will be notified\n✅ Order will be marked as cancelled')) {
+        return;
+    }
+    
+    console.log(`✅ Approving cancellation #${cancellationId} for ${orderType} #${orderId}`);
+    
+    // Show loading state
+    showToast('Processing approval...', 'warning');
+    
+    fetch('/api/vendor/cancellation-request/approve', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            cancellation_id: cancellationId,
+            order_type: orderType,
+            order_id: orderId
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => { throw new Error(err.error || 'Network error') });
+        }
+        return response.json();
+    })
+    .then(result => {
+        if (result.success) {
+            showToast('✅ Cancellation approved! Equipment has been restocked.', 'success');
+            // Reload the cancellation requests
+            loadCancellationRequests();
+            // Refresh equipment data if function exists
+            if (typeof loadEquipmentFromDB === 'function') {
+                setTimeout(() => loadEquipmentFromDB(), 1000);
+            }
+        } else {
+            showToast(result.error || 'Error approving cancellation', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('❌ Error approving cancellation:', error);
+        showToast(error.message || 'Error approving cancellation', 'error');
+    });
+}
+
+function rejectCancellationRequest(cancellationId, orderType, orderId) {
+    if (!confirm('Are you sure you want to REJECT this cancellation?\n\n❌ Order will remain active\n❌ Customer will be notified\n❌ Equipment will NOT be restocked')) {
+        return;
+    }
+    
+    console.log(`❌ Rejecting cancellation #${cancellationId} for ${orderType} #${orderId}`);
+    
+    // Show loading state
+    showToast('Processing rejection...', 'warning');
+    
+    fetch('/api/vendor/cancellation-request/reject', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            cancellation_id: cancellationId,
+            order_type: orderType,
+            order_id: orderId
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => { throw new Error(err.error || 'Network error') });
+        }
+        return response.json();
+    })
+    .then(result => {
+        if (result.success) {
+            showToast('❌ Cancellation request rejected. Order remains active.', 'success');
+            // Reload the cancellation requests
+            loadCancellationRequests();
+        } else {
+            showToast(result.error || 'Error rejecting cancellation', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('❌ Error rejecting cancellation:', error);
+        showToast(error.message || 'Error rejecting cancellation', 'error');
+    });
+}
+    // Function to load equipment from database
+    // In index.html - Fix the equipment loading and display
+
+// Replace the loadEquipmentFromDB function
+async function loadEquipmentFromDB() {
+    try {
+        const response = await fetch('/api/vendor/equipment');
+        if (response.ok) {
+            equipmentData = await response.json();
+            console.log('✅ Loaded equipment from DB:', equipmentData.length, 'items');
+            
+            // Store in localStorage for backup
+            localStorage.setItem('vendorEquipmentData', JSON.stringify(equipmentData));
+            
+            // Update all equipment displays
+            loadEquipment();
+            loadRecentEquipment();
+            updateStats();
+            
+            return true;
+        } else {
+            console.error('❌ Failed to load equipment from database');
+            // Fallback to localStorage
+            const localData = JSON.parse(localStorage.getItem('vendorEquipmentData')) || [];
+            equipmentData = localData;
+            loadEquipment();
+            loadRecentEquipment();
+            updateStats();
+            return false;
+        }
+    } catch (error) {
+        console.error('❌ Error loading equipment:', error);
+        // Fallback to localStorage
+        const localData = JSON.parse(localStorage.getItem('vendorEquipmentData')) || [];
+        equipmentData = localData;
+        loadEquipment();
+        loadRecentEquipment();
+        updateStats();
+        return false;
+    }
+}
+
+// Fix the equipment card display for both rental and purchase prices
+function createEquipmentCard(item) {
+    const card = document.createElement('div');
+    card.className = 'item-card';
+    card.dataset.id = item.id;
+    
+    const statusClass = 
+        item.status === 'available' ? 'badge-available' : 
+        item.status === 'unavailable' ? 'badge-unavailable' : 'badge-maintenance';
+        
+    const statusText = 
+        item.status === 'available' ? 'Available' : 
+        item.status === 'unavailable' ? 'Unavailable' : 'Maintenance';
+    
+    // Calculate stock status
+    const stockQuantity = parseInt(item.stock_quantity) || 0;
+    const minStockThreshold = parseInt(item.min_stock_threshold) || 5;
+    
+    let stockBadge = '';
+    if (stockQuantity <= 0) {
+        stockBadge = '<span class="item-badge badge-unavailable" style="top: 45px;">Out of Stock</span>';
+    } else if (stockQuantity <= minStockThreshold) {
+        stockBadge = `<span class="item-badge badge-maintenance" style="top: 45px;">Low Stock: ${stockQuantity}</span>`;
+    }
+    
+    // Parse prices
+    const rentalPrice = parseFloat(item.rental_price) || 0;
+    const purchasePrice = parseFloat(item.purchase_price) || 0;
+    const equipmentType = item.equipment_type || 'both';
+    
+    // Display pricing based on equipment type
+    let pricingHtml = '';
+    if (equipmentType === 'both') {
+        pricingHtml = `
+            <div class="item-price">
+                <div style="margin-bottom: 5px; color: var(--secondary);">
+                    <strong>Purchase: ₹${purchasePrice.toLocaleString()} / ${item.purchase_unit || 'unit'}</strong>
+                </div>
+                <div style="color: var(--primary);">
+                    <strong>Rent: ₹${rentalPrice.toLocaleString()} / ${item.rental_price_unit || 'day'}</strong>
+                </div>
+            </div>
+        `;
+    } else if (equipmentType === 'rental_only') {
+        pricingHtml = `
+            <div class="item-price">
+                <div style="color: var(--primary);">
+                    <strong>Rent: ₹${rentalPrice.toLocaleString()} / ${item.rental_price_unit || 'day'}</strong>
+                </div>
+                <span class="item-badge" style="background: #bee3f8; color: #2c5282; margin-top: 5px;">Rental Only</span>
+            </div>
+        `;
+    } else if (equipmentType === 'purchase_only') {
+        pricingHtml = `
+            <div class="item-price">
+                <div style="color: var(--secondary);">
+                    <strong>Purchase: ₹${purchasePrice.toLocaleString()} / ${item.purchase_unit || 'unit'}</strong>
+                </div>
+                <span class="item-badge" style="background: #c6f6d5; color: #2f855a; margin-top: 5px;">Purchase Only</span>
+            </div>
+        `;
+    }
+    
+    // Handle image display
+    let imageHtml = '';
+    if (item.image_url && item.image_url !== 'None' && item.image_url !== 'null') {
+        imageHtml = `
+            <img src="${item.image_url}" alt="${item.name}" 
+                 onerror="this.style.display='none'; this.parentElement.querySelector('.default-icon').style.display='flex';">
+            <div class="default-icon" style="display: none;">
+                <i class="fas fa-tractor"></i>
+            </div>
+        `;
+    } else {
+        imageHtml = `
+            <div class="default-icon">
+                <i class="fas fa-tractor"></i>
+            </div>
+        `;
+    }
+    
+    card.innerHTML = `
+        <div class="item-img">
+            ${imageHtml}
+            <span class="item-badge ${statusClass}">${statusText}</span>
+            ${stockBadge}
+        </div>
+        <div class="item-info">
+            <h3>${item.name}</h3>
+            <p>${item.description || 'No description available'}</p>
+            
+            <div class="vendor-info" style="background: #f8f9fa; padding: 10px; border-radius: 6px; margin: 10px 0;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span><i class="fas fa-store"></i> <strong>${item.business_name || 'Your Store'}</strong></span>
+                    <span><i class="fas fa-map-marker-alt"></i> ${item.location}</span>
+                </div>
+            </div>
+            
+            ${pricingHtml}
+            
+            <div class="item-meta">
+                <span><i class="fas fa-tag"></i> ${item.category}</span>
+                <span><i class="fas fa-box"></i> Stock: ${stockQuantity}</span>
+            </div>
+            
+            <div class="item-actions">
+                <button class="btn btn-primary btn-sm edit-equipment" data-id="${item.id}">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button class="btn btn-success btn-sm restock-equipment" data-id="${item.id}">
+                    <i class="fas fa-plus-circle"></i> Restock
+                </button>
+                <button class="btn btn-danger btn-sm delete-equipment" data-id="${item.id}">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    `;
+    
+    return card;
+}
+
+// Add restock function
+async function restockEquipment(equipmentId) {
+    const quantity = prompt('Enter quantity to add:', '1');
+    if (!quantity) return;
+    
+    const qty = parseInt(quantity);
+    if (isNaN(qty) || qty <= 0) {
+        showToast('Please enter a valid quantity', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/equipment/update-stock/${equipmentId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ quantity_change: qty })
+        });
+        
+        if (response.ok) {
+            showToast(`✅ Added ${qty} units to stock`);
+            loadEquipmentFromDB();
+        } else {
+            showToast('❌ Failed to restock', 'error');
+        }
+    } catch (error) {
+        console.error('Error restocking:', error);
+        showToast('Error restocking', 'error');
+    }
+}
+
+async function saveEquipment() {
+    const id = document.getElementById('equipmentId').value;
+    const name = document.getElementById('equipmentName').value;
+    const category = document.getElementById('equipmentCategory').value;
+    const description = document.getElementById('equipmentDescription').value;
+    
+    // New pricing fields
+    const rentalPrice = document.getElementById('rentalPrice').value;
+    const rentalPriceUnit = document.getElementById('rentalPriceUnit').value;
+    const purchasePrice = document.getElementById('purchasePrice').value;
+    const purchaseUnit = document.getElementById('purchaseUnit').value;
+    const equipmentType = document.getElementById('equipmentType').value;
+    
+    const location = document.getElementById('equipmentLocation').value;
+    const status = document.getElementById('availabilityStatus').value;
+    const stockQuantity = document.getElementById('stockQuantity').value;
+    const minStockThreshold = document.getElementById('minStockThreshold').value;
+    const imageFile = document.getElementById('equipmentImage').files[0];
+    
+    // Validation
+    if (!name || !category || !location || !status || !stockQuantity || !minStockThreshold || !equipmentType) {
+        showToast('Please fill in all required fields', 'error');
+        return;
+    }
+    
+    // Validate pricing based on equipment type
+    if (equipmentType === 'both' || equipmentType === 'rental_only') {
+        if (!rentalPrice || parseFloat(rentalPrice) <= 0) {
+            showToast('Please enter a valid rental price', 'error');
+            return;
+        }
+    }
+    
+    if (equipmentType === 'both' || equipmentType === 'purchase_only') {
+        if (!purchasePrice || parseFloat(purchasePrice) <= 0) {
+            showToast('Please enter a valid purchase price', 'error');
+            return;
+        }
+    }
+    
+    // Parse numeric values
+    const parsedRentalPrice = parseFloat(rentalPrice) || 0;
+    const parsedPurchasePrice = parseFloat(purchasePrice) || 0;
+    const parsedStockQuantity = parseInt(stockQuantity);
+    const parsedMinStockThreshold = parseInt(minStockThreshold);
+    
+    if (isNaN(parsedStockQuantity) || parsedStockQuantity < 1) {
+        showToast('Please enter a valid stock quantity (minimum 1)', 'error');
+        return;
+    }
+    
+    if (isNaN(parsedMinStockThreshold) || parsedMinStockThreshold < 1) {
+        showToast('Please enter a valid minimum stock threshold (minimum 1)', 'error');
+        return;
+    }
+    
+    // Create FormData
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('category', category);
+    formData.append('description', description);
+    
+    // Add pricing data
+    formData.append('rental_price', parsedRentalPrice);
+    formData.append('rental_price_unit', rentalPriceUnit);
+    formData.append('purchase_price', parsedPurchasePrice);
+    formData.append('purchase_unit', purchaseUnit);
+    formData.append('equipment_type', equipmentType);
+    
+    formData.append('location', location);
+    formData.append('status', status);
+    formData.append('stock_quantity', parsedStockQuantity);
+    formData.append('min_stock_threshold', parsedMinStockThreshold);
+    
+    if (imageFile) {
+        formData.append('image', imageFile);
+    }
+    
+    console.log('💾 Saving equipment data:', {
+        id, name, category, description, 
+        rentalPrice: parsedRentalPrice, rentalPriceUnit,
+        purchasePrice: parsedPurchasePrice, purchaseUnit,
+        equipmentType, location, status,
+        stockQuantity: parsedStockQuantity, 
+        minStockThreshold: parsedMinStockThreshold,
+        hasImage: !!imageFile
+    });
+    
+    try {
+        const url = id ? `/api/equipment/update/${id}` : '/api/equipment/add';
+        
+        console.log(`📤 Sending to: ${url}`);
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        console.log('📨 Response:', result);
+        
+        if (response.ok && result.success) {
+            showToast(id ? 'Equipment updated successfully' : 'Equipment added successfully');
+            modal.style.display = 'none';
+            equipmentForm.reset();
+            imagePreviewContainer.style.display = 'none';
+            await loadEquipmentFromDB(); // Reload equipment
+        } else {
+            showToast(result.error || 'Error saving equipment', 'error');
+        }
+    } catch (error) {
+        console.error('❌ Error saving equipment:', error);
+        showToast('Error saving equipment', 'error');
+    }
+}
+    // Function to delete equipment from database
+    async function deleteEquipmentFromDB(id) {
+        try {
+            const response = await fetch(`/api/equipment/delete/${id}`, {
+                method: 'POST'
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                return true;
+            } else {
+                showToast(result.error || 'Error deleting equipment', 'error');
+                return false;
+            }
+        } catch (error) {
+            console.error('Error deleting equipment:', error);
+            showToast('Error deleting equipment', 'error');
+            return false;
+        }
+    }
+
+
+    // ================= EQUIPMENT MANAGEMENT =================
+    
+    // Function to count equipment by category
+    function countEquipmentByCategory() {
+        const counts = {
+            tractor: 0,
+            harvester: 0,
+            plough: 0,
+            irrigation: 0,
+            other: 0
+        };
+        
+        equipmentData.forEach(item => {
+            if (item.status === 'available') {
+                counts[item.category] = (counts[item.category] || 0) + 1;
+            }
+        });
+        
+        // Update the UI with counts
+        document.getElementById('tractorCount').textContent = counts.tractor;
+        document.getElementById('harvesterCount').textContent = counts.harvester;
+        document.getElementById('ploughCount').textContent = counts.plough;
+        document.getElementById('irrigationCount').textContent = counts.irrigation;
+        document.getElementById('otherCount').textContent = counts.other;
+    }
+
+  // Function to update stats
+async function updateStats() {
+    try {
+        // Update total equipment count
+        totalEquipmentEl.textContent = equipmentData.length;
+        
+        // Load equipment counts from backend
+        countEquipmentByCategory();
+        
+        // Fetch real booking stats
+        const bookingsResponse = await fetch('/api/vendor/bookings');
+        const bookings = await bookingsResponse.json();
+        
+        // Count active bookings (pending + confirmed)
+        const activeBookingsCount = bookings.filter(booking => 
+            booking.status === 'confirmed' || booking.status === 'pending'
+        ).length;
+        document.getElementById('activeBookings').textContent = activeBookingsCount;
+        
+        // Count unique customers
+        const uniqueCustomers = new Set(bookings.map(booking => booking.user_id));
+        document.getElementById('totalCustomers').textContent = uniqueCustomers.size;
+        
+        // For now, use placeholder for average rating
+        // You would need to implement reviews API for this
+        document.getElementById('averageRating').textContent = '4.5';
+        
+    } catch (error) {
+        console.error('Error updating stats:', error);
+        // Fallback to basic counts
+        totalEquipmentEl.textContent = equipmentData.length;
+        document.getElementById('activeBookings').textContent = '0';
+        document.getElementById('totalCustomers').textContent = '0';
+        document.getElementById('averageRating').textContent = '0.0';
+    }
+}
+
+    // Add this function to your JavaScript
+function loadEquipment() {
+    const equipmentGrid = document.getElementById('equipmentGrid');
+    if (!equipmentGrid) return;
+    
+    equipmentGrid.innerHTML = '';
+    
+    if (equipmentData.length === 0) {
+        equipmentGrid.innerHTML = '<p class="no-data" style="text-align: center; padding: 40px; color: var(--gray);">No equipment added yet. Click the "Add Equipment" button to get started.</p>';
+        return;
+    }
+    
+    equipmentData.forEach(item => {
+        const equipmentCard = createEquipmentCard(item);
+        equipmentGrid.appendChild(equipmentCard);
+    });
+}
+// In vendor dashboard - update the booking/rent request display
+function addCancellationActionButtons(requestId, type) {
+    return `
+        <div class="cancellation-actions" style="margin-top: 10px; padding: 10px; background: #fff3cd; border-radius: 5px;">
+            <p style="margin: 0 0 10px 0; font-weight: bold;">Cancellation Requested</p>
+            <button class="btn btn-success btn-sm approve-cancel" data-id="${requestId}" data-type="${type}">
+                <i class="fas fa-check"></i> Approve Cancel
+            </button>
+            <button class="btn btn-danger btn-sm reject-cancel" data-id="${requestId}" data-type="${type}">
+                <i class="fas fa-times"></i> Reject Cancel
+            </button>
+        </div>
+    `;
+}
+
+ // In vendor dashboard JavaScript, update the createEquipmentCard function
+// Update the createEquipmentCard function to display both prices:
+function createEquipmentCard(item) {
+    const card = document.createElement('div');
+    card.className = 'item-card';
+    card.dataset.id = item.id;
+    
+    const statusClass = 
+        item.status === 'available' ? 'badge-available' : 
+        item.status === 'unavailable' ? 'badge-unavailable' : 'badge-maintenance';
+        
+    const statusText = 
+        item.status === 'available' ? 'Available' : 
+        item.status === 'unavailable' ? 'Unavailable' : 'Maintenance';
+    
+    // Calculate stock status
+    const stockQuantity = item.stock_quantity || 1;
+    const minStockThreshold = item.min_stock_threshold || 5;
+    
+    let stockBadge = '';
+    if (stockQuantity <= 0) {
+        stockBadge = '<span class="item-badge badge-unavailable" style="top: 45px;">Out of Stock</span>';
+    } else if (stockQuantity <= minStockThreshold) {
+        stockBadge = `<span class="item-badge badge-maintenance" style="top: 45px;">Low Stock: ${stockQuantity}</span>`;
+    } else {
+        stockBadge = `<span class="item-badge badge-available" style="top: 45px;">In Stock: ${stockQuantity}</span>`;
+    }
+    
+    // Display pricing based on equipment type
+    let pricingHtml = '';
+    const equipmentType = item.equipment_type || 'both';
+    
+    if (equipmentType === 'both') {
+        pricingHtml = `
+            <div class="item-price" style="margin-bottom: 5px;">
+                <span style="color: var(--primary);">Rent: ₹${item.rental_price || item.price}/${item.rental_price_unit === 'day' ? 'day' : item.rental_price_unit || 'unit'}</span>
+            </div>
+            <div class="item-price">
+                <span style="color: var(--secondary);">Purchase: ₹${item.purchase_price || item.price}/${item.purchase_unit === 'unit' ? 'unit' : item.purchase_unit}</span>
+            </div>
+        `;
+    } else if (equipmentType === 'rental_only') {
+        pricingHtml = `
+            <div class="item-price">
+                <span style="color: var(--primary);">Rent: ₹${item.rental_price || item.price}/${item.rental_price_unit === 'day' ? 'day' : item.rental_price_unit || 'unit'}</span>
+                <span class="item-badge" style="background: #bee3f8; color: #2c5282; margin-left: 10px; font-size: 0.7rem;">Rental Only</span>
+            </div>
+        `;
+    } else if (equipmentType === 'purchase_only') {
+        pricingHtml = `
+            <div class="item-price">
+                <span style="color: var(--secondary);">Purchase: ₹${item.purchase_price || item.price}/${item.purchase_unit === 'unit' ? 'unit' : item.purchase_unit}</span>
+                <span class="item-badge" style="background: #c6f6d5; color: #2f855a; margin-left: 10px; font-size: 0.7rem;">Purchase Only</span>
+            </div>
+        `;
+    }
+    
+    // Handle image display
+    let imageHtml = '';
+    if (item.image_url && item.image_url !== 'None' && item.image_url !== 'null' && item.image_url.trim() !== '') {
+        imageHtml = `
+            <img src="${item.image_url}" alt="${item.name}" 
+                 style="width: 100%; height: 100%; object-fit: cover;"
+                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div style="display: none; align-items: center; justify-content: center; height: 100%; background: #f5f5f5; color: var(--gray);">
+                <i class="fas fa-tractor" style="font-size: 3rem;"></i>
+            </div>
+        `;
+    } else {
+        imageHtml = `
+            <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f5f5f5; color: var(--gray);">
+                <i class="fas fa-tractor" style="font-size: 3rem;"></i>
+            </div>
+        `;
+    }
+    
+    card.innerHTML = `
+        <div class="item-img">
+            ${imageHtml}
+            <span class="item-badge ${statusClass}">${statusText}</span>
+            ${stockBadge}
+        </div>
+        <div class="item-info">
+            <h3>${item.name}</h3>
+            <p>${item.description || 'No description available'}</p>
+            ${pricingHtml}
+            <div class="item-meta">
+                <span><i class="fas fa-map-marker-alt"></i> ${item.location}</span>
+                <span><i class="fas fa-tag"></i> ${item.category}</span>
+            </div>
+            <div class="item-meta">
+                <span><i class="fas fa-box"></i> Stock: ${stockQuantity}</span>
+                <span><i class="fas fa-bell"></i> Alert: ${minStockThreshold}</span>
+            </div>
+            <div class="item-actions">
+                <button class="btn btn-primary btn-sm edit-equipment" data-id="${item.id}">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button class="btn btn-success btn-sm give-for-rent" data-id="${item.id}" 
+                        ${item.status !== 'available' || stockQuantity <= 0 || equipmentType === 'purchase_only' ? 'disabled' : ''}>
+                    <i class="fas fa-handshake"></i> Rent
+                </button>
+                <button class="btn btn-danger btn-sm delete-equipment" data-id="${item.id}">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    `;
+    
+    return card;
+}
+
+
+// Update the openEquipmentModal function to populate new fields:
+function openEquipmentModal(editId = null) {
+    if (editId) {
+        modalTitle.textContent = 'Edit Equipment';
+        const equipment = equipmentData.find(item => item.id == editId);
+        if (equipment) {
+            // Existing fields
+            document.getElementById('equipmentId').value = equipment.id;
+            document.getElementById('equipmentName').value = equipment.name;
+            document.getElementById('equipmentCategory').value = equipment.category;
+            document.getElementById('equipmentDescription').value = equipment.description || '';
+            document.getElementById('equipmentLocation').value = equipment.location;
+            document.getElementById('availabilityStatus').value = equipment.status;
+            document.getElementById('stockQuantity').value = equipment.stock_quantity || '';
+            document.getElementById('minStockThreshold').value = equipment.min_stock_threshold || '';
+            
+            // New pricing fields (with fallbacks for existing equipment)
+            document.getElementById('rentalPrice').value = equipment.rental_price || equipment.price || '';
+            document.getElementById('rentalPriceUnit').value = equipment.rental_price_unit || equipment.price_unit || 'day';
+            document.getElementById('purchasePrice').value = equipment.purchase_price || equipment.price || '';
+            document.getElementById('purchaseUnit').value = equipment.purchase_unit || 'unit';
+            document.getElementById('equipmentType').value = equipment.equipment_type || 'both';
+            
+            // Image preview
+            if (equipment.image_url && equipment.image_url !== 'None' && equipment.image_url !== 'null') {
+                imagePreview.src = equipment.image_url;
+                imagePreviewContainer.style.display = 'block';
+            } else {
+                imagePreviewContainer.style.display = 'none';
+            }
+        }
+    } else {
+        modalTitle.textContent = 'Add New Equipment';
+        document.getElementById('equipmentId').value = '';
+        equipmentForm.reset();
+        
+        // Set defaults for new equipment
+        document.getElementById('rentalPriceUnit').value = 'day';
+        document.getElementById('purchaseUnit').value = 'unit';
+        document.getElementById('equipmentType').value = 'both';
+        document.getElementById('availabilityStatus').value = 'available';
+        
+        imagePreviewContainer.style.display = 'none';
+    }
+    
+    modal.style.display = 'flex';
+}
+
+
+    async function deleteEquipment(id) {
+        if (confirm('Are you sure you want to delete this equipment?')) {
+            const success = await deleteEquipmentFromDB(id);
+            if (success) {
+                // Remove from local array
+                equipmentData = equipmentData.filter(item => item.id != id);
+                loadEquipment();
+                loadRecentEquipment();
+                updateStats();
+                showToast('Equipment deleted successfully');
+            }
+        }
+    }
+// Add this function to load recent equipment for dashboard
+function loadRecentEquipment() {
+    const recentEquipment = document.getElementById('recentEquipment');
+    if (!recentEquipment) return;
+    
+    recentEquipment.innerHTML = '';
+    
+    // Show only recent 4 equipment
+    const recentItems = equipmentData.slice(0, 4);
+    
+    if (recentItems.length === 0) {
+        recentEquipment.innerHTML = '<p class="no-data" style="text-align: center; padding: 40px; color: var(--gray);">No equipment added yet</p>';
+        return;
+    }
+    
+    recentItems.forEach(item => {
+        const equipmentCard = createEquipmentCard(item);
+        recentEquipment.appendChild(equipmentCard);
+    });
+}
+    // ================= RENT MODAL FUNCTIONS =================
+
+    function openRentModal(equipmentId) {
+        const equipment = equipmentData.find(item => item.id == equipmentId);
+        if (equipment) {
+            document.getElementById('rentEquipmentId').value = equipment.id;
+            document.getElementById('rentEquipmentName').textContent = equipment.name;
+            document.getElementById('rentEquipmentDescription').textContent = equipment.description;
+            document.getElementById('rentPricePerDay').value = equipment.price;
+            document.getElementById('rentDays').value = '';
+            document.getElementById('totalRentAmount').textContent = '₹0';
+            document.getElementById('rentNotes').value = '';
+            
+            rentModal.style.display = 'flex';
+        }
+    }
+
+    function calculateTotalRent() {
+        const pricePerDay = parseFloat(document.getElementById('rentPricePerDay').value) || 0;
+        const days = parseInt(document.getElementById('rentDays').value) || 0;
+        const totalAmount = pricePerDay * days;
+        
+        document.getElementById('totalRentAmount').textContent = `₹${totalAmount.toLocaleString()}`;
+    }
+
+    function confirmRental() {
+        const equipmentId = document.getElementById('rentEquipmentId').value;
+        const pricePerDay = parseFloat(document.getElementById('rentPricePerDay').value);
+        const days = parseInt(document.getElementById('rentDays').value);
+        const totalAmount = pricePerDay * days;
+        const notes = document.getElementById('rentNotes').value;
+        
+        if (!pricePerDay || !days) {
+            showToast('Please fill in all required fields', 'error');
+            return;
+        }
+        
+        const equipment = equipmentData.find(item => item.id == equipmentId);
+        if (equipment) {
+            // Update equipment status to unavailable
+            equipment.status = 'unavailable';
+            
+            // Create rental record
+            const rental = {
+                id: Date.now(),
+                equipmentId: parseInt(equipmentId),
+                equipmentName: equipment.name,
+                pricePerDay: pricePerDay,
+                days: days,
+                totalAmount: totalAmount,
+                notes: notes,
+                status: 'rented',
+                rentedAt: new Date().toISOString()
+            };
+            
+            rentalsData.push(rental);
+            localStorage.setItem('rentalsData', JSON.stringify(rentalsData));
+            
+            // Update UI
+            loadEquipment();
+            updateStats();
+            rentModal.style.display = 'none';
+            rentForm.reset();
+            showToast('Equipment successfully given for rent');
+            
+            // Update available equipment counts
+            countEquipmentByCategory();
+        }
+    }
+
+    // ================= BOOKINGS FUNCTIONS =================
+
+    function loadRecentBookings() {
+        recentBookingsTable.innerHTML = '';
+        
+        if (bookingsData.length === 0) {
+            recentBookingsTable.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 20px; color: var(--gray);">
+                        No bookings found
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        const recentBookings = bookingsData.slice(0, 5);
+        
+        recentBookings.forEach(booking => {
+            const row = document.createElement('tr');
+            
+            const statusClass = 
+                booking.status === 'confirmed' ? 'badge-available' : 
+                booking.status === 'pending' ? 'badge-maintenance' : 
+                booking.status === 'completed' ? 'badge-available' : 'badge-unavailable';
+            
+            row.innerHTML = `
+                <td>${booking.customer}</td>
+                <td>${booking.equipment}</td>
+                <td>${booking.startDate} to ${booking.endDate}</td>
+                <td><span class="item-badge ${statusClass}">${booking.status}</span></td>
+                <td>
+                    <button class="btn btn-primary btn-sm view-booking" data-id="${booking.id}">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                </td>
+            `;
+            
+            recentBookingsTable.appendChild(row);
+        });
+    }
+
+   // ================= BOOKINGS FUNCTIONS =================
+
+async function loadRecentBookings() {
+    try {
+        const response = await fetch('/api/vendor/bookings?status=pending');
+        const bookings = await response.json();
+        
+        const tableBody = document.getElementById('recentBookingsTable');
+        tableBody.innerHTML = '';
+        
+        if (bookings.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 20px; color: var(--gray);">
+                        No recent bookings found
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        // Show only recent pending bookings (last 5)
+        const recentBookings = bookings.slice(0, 5);
+        
+        recentBookings.forEach(booking => {
+            const row = document.createElement('tr');
+            
+            const statusClass = 
+                booking.status === 'confirmed' ? 'badge-available' : 
+                booking.status === 'pending' ? 'badge-maintenance' : 
+                booking.status === 'completed' ? 'badge-available' : 'badge-unavailable';
+            
+            const bookingDate = new Date(booking.created_date).toLocaleDateString();
+            
+            row.innerHTML = `
+                <td>${booking.user_name}</td>
+                <td>${booking.equipment_name}</td>
+                <td>${bookingDate}</td>
+                <td><span class="item-badge ${statusClass}">${booking.status}</span></td>
+                <td>
+                    <button class="btn btn-primary btn-sm view-booking" data-id="${booking.id}">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                </td>
+            `;
+            
+            tableBody.appendChild(row);
+        });
+        
+        // Add event listeners for view buttons
+        addBookingEventListeners();
+        
+    } catch (error) {
+        console.error('Error loading recent bookings:', error);
+        document.getElementById('recentBookingsTable').innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 20px; color: var(--accent);">
+                    Error loading recent bookings
+                </td>
+            </tr>
+        `;
+    }
+}
+
+async function loadAllBookings() {
+    try {
+        const statusFilter = document.getElementById('bookingFilter').value;
+        const url = statusFilter === 'all' 
+            ? '/api/vendor/bookings' 
+            : `/api/vendor/bookings?status=${statusFilter}`;
+            
+        const response = await fetch(url);
+        const bookings = await response.json();
+        
+        const tableBody = document.getElementById('bookingsTable');
+        tableBody.innerHTML = '';
+        
+        if (bookings.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 20px; color: var(--gray);">
+                        No bookings found
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        bookings.forEach(booking => {
+            const row = document.createElement('tr');
+            
+            const statusClass = 
+                booking.status === 'confirmed' ? 'badge-available' : 
+                booking.status === 'pending' ? 'badge-maintenance' : 
+                booking.status === 'completed' ? 'badge-available' : 'badge-unavailable';
+            
+            const bookingDate = new Date(booking.created_date).toLocaleDateString();
+            
+            row.innerHTML = `
+                <td>#${booking.id}</td>
+                <td>${booking.user_name}</td>
+                <td>${booking.equipment_name}</td>
+                <td>${bookingDate}</td>
+                <td>₹${booking.total_amount}</td>
+                <td><span class="item-badge ${statusClass}">${booking.status}</span></td>
+                <td>
+                    
+                    ${booking.status === 'pending' ? `
+                    <button class="btn btn-success btn-sm confirm-booking" data-id="${booking.id}">
+                        <i class="fas fa-check"></i> Confirm
+                    </button>
+                    ` : ''}
+                </td>
+            `;
+            
+            tableBody.appendChild(row);
+        });
+        
+        // Add event listeners for booking actions
+        addBookingEventListeners();
+        
+    } catch (error) {
+        console.error('Error loading bookings:', error);
+        document.getElementById('bookingsTable').innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 20px; color: var(--accent);">
+                    Error loading bookings
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function addBookingEventListeners() {
+    // View booking
+   
+    // Confirm booking
+    document.querySelectorAll('.confirm-booking').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const bookingId = this.getAttribute('data-id');
+            updateBookingStatus(bookingId, 'confirmed');
+        });
+    });
+}
+
+// ================= STOCK MANAGEMENT FUNCTIONS =================
+// ADD THIS CODE AFTER YOUR EXISTING FUNCTIONS IN VENDOR DASHBOARD
+
+// Function to update equipment stock
+async function updateEquipmentStock(equipmentId, quantityChange) {
+    try {
+        const response = await fetch(`/api/equipment/update-stock/${equipmentId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+                quantity_change: quantityChange 
+            })
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            console.log('✅ Stock updated successfully:', {
+                equipmentId: equipmentId,
+                quantityChange: quantityChange,
+                newStock: result.new_stock
+            });
+            
+            // Refresh equipment data after stock update
+            await loadEquipmentFromDB();
+            
+            return true;
+        } else {
+            console.error('❌ Failed to update stock');
+            return false;
+        }
+    } catch (error) {
+        console.error('❌ Error updating stock:', error);
+        return false;
+    }
+}
+
+// Helper function to get rent request details
+async function getRentRequestDetails(requestId) {
+    try {
+        const response = await fetch(`/api/vendor/rent-request/${requestId}`);
+        if (response.ok) {
+            return await response.json();
+        }
+    } catch (error) {
+        console.error('Error fetching rent request details:', error);
+    }
+    return null;
+}
+
+// Helper function to get booking details
+async function getBookingDetails(bookingId) {
+    try {
+        const response = await fetch(`/api/vendor/booking/${bookingId}`);
+        if (response.ok) {
+            return await response.json();
+        }
+    } catch (error) {
+        console.error('Error fetching booking details:', error);
+    }
+    return null;
+}
+// ================= VENDOR REVIEWS FUNCTIONS =================
+
+async function loadVendorReviews() {
+    try {
+        const response = await fetch('/api/vendor/reviews');
+        const reviews = await response.json();
+        
+        const container = document.getElementById('vendorReviewsList');
+        const noReviewsMsg = document.querySelector('.no-reviews');
+        
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        if (!reviews || reviews.length === 0 || reviews.error) {
+            if (noReviewsMsg) noReviewsMsg.style.display = 'block';
+            updateReviewStats(0, 0);
+            return;
+        }
+        
+        if (noReviewsMsg) noReviewsMsg.style.display = 'none';
+        
+        // Sort reviews based on filter
+        const sortFilter = document.getElementById('reviewSortFilter').value;
+        let sortedReviews = [...reviews];
+        
+        switch(sortFilter) {
+            case 'newest':
+                sortedReviews.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+                break;
+            case 'oldest':
+                sortedReviews.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+                break;
+            case 'highest':
+                sortedReviews.sort((a, b) => b.rating - a.rating);
+                break;
+            case 'lowest':
+                sortedReviews.sort((a, b) => a.rating - b.rating);
+                break;
+        }
+        
+        // Display reviews
+        sortedReviews.forEach(review => {
+            const reviewCard = createVendorReviewCard(review);
+            container.appendChild(reviewCard);
+        });
+        
+        // Update stats
+        updateReviewStats(reviews);
+        
+    } catch (error) {
+        console.error('❌ Error loading vendor reviews:', error);
+        const container = document.getElementById('vendorReviewsList');
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: var(--accent);">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Error Loading Reviews</h3>
+                <p>Failed to load reviews. Please try again.</p>
+                <button class="btn btn-primary" onclick="loadVendorReviews()">
+                    <i class="fas fa-redo"></i> Retry
+                </button>
+            </div>
+        `;
+    }
+}
+
+function createVendorReviewCard(review) {
+    const card = document.createElement('div');
+    card.className = 'card review-card';
+    
+    // Get user initials for avatar
+    const userInitials = review.user_name.split(' ').map(n => n[0]).join('').toUpperCase();
+    
+    // Format date
+    const reviewDate = new Date(review.created_date).toLocaleDateString('en-IN', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
+    // Create stars
+    let starsHtml = '';
+    for (let i = 1; i <= 5; i++) {
+        starsHtml += `<i class="fas fa-star" style="color: ${i <= review.rating ? '#f59e0b' : '#e2e8f0'};"></i>`;
+    }
+    
+    // Order type badge
+    const orderTypeBadge = review.order_type === 'booking' 
+        ? '<span class="order-type-badge badge-booking">Booking</span>'
+        : '<span class="order-type-badge badge-rental">Rental</span>';
+    
+    card.innerHTML = `
+        <div class="review-header">
+            <div class="reviewer-info">
+                <div class="reviewer-avatar">
+                    ${userInitials}
+                </div>
+                <div class="reviewer-details">
+                    <h4>${review.user_name}</h4>
+                    <div class="review-rating">
+                        ${starsHtml}
+                    </div>
+                </div>
+            </div>
+            <div class="review-date">
+                ${reviewDate}
+            </div>
+        </div>
+        
+        <div class="review-content">
+            <h3 class="review-title">${review.title}</h3>
+            <p class="review-comment">${review.comment}</p>
+        </div>
+        
+        <div class="review-meta">
+            <div class="equipment-info">
+                <div class="equipment-image">
+                    ${review.equipment_image ? 
+                        `<img src="${review.equipment_image}" alt="${review.equipment_name}" 
+                              onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\\'fas fa-tractor\\' style=\\'font-size: 1.5rem; color: var(--gray);\\'></i>';">
+                        ` : 
+                        `<i class="fas fa-tractor" style="font-size: 1.5rem; color: var(--gray);"></i>`
+                    }
+                </div>
+                <div class="equipment-details">
+                    <h5>${review.equipment_name}</h5>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        ${review.equipment_category ? 
+                            `<span class="equipment-category">${review.equipment_category}</span>` : ''}
+                        ${orderTypeBadge}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    return card;
+}
+
+function updateReviewStats(reviews) {
+    if (!reviews || reviews.length === 0) {
+        document.getElementById('totalReviews').textContent = '0';
+        document.getElementById('averageRating').textContent = '0.0';
+        return;
+    }
+    
+    // Calculate average rating
+    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+    const averageRating = (totalRating / reviews.length).toFixed(1);
+    
+    // Update UI
+    document.getElementById('totalReviews').textContent = reviews.length;
+    document.getElementById('averageRating').textContent = averageRating;
+    
+    // Also update the stats in dashboard
+    document.querySelector('.stat-card:nth-child(4) h3').textContent = averageRating;
+}
+
+// Add event listener for review filter
+document.addEventListener('DOMContentLoaded', function() {
+    const reviewSortFilter = document.getElementById('reviewSortFilter');
+    if (reviewSortFilter) {
+        reviewSortFilter.addEventListener('change', loadVendorReviews);
+    }
+});
+// UPDATE THE EXISTING updateRentRequestStatus function - REPLACE IT with this:
+// Update the rent request approval function
+async function updateRentRequestStatus(requestId, status) {
+    try {
+        let url = '';
+        
+        if (status === 'approved') {
+            url = `/api/vendor/approve-rent-request/${requestId}`;
+        } else {
+            url = `/api/vendor/rent-request/${requestId}/update`;
+        }
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: status !== 'approved' ? JSON.stringify({ status: status }) : null
+        });
+        
+        if (response.ok) {
+            showToast(`Rent request ${status} successfully`);
+            
+            // If approved, the auto-restock is automatically scheduled
+            if (status === 'approved') {
+                showToast('Equipment will be automatically restocked after the rental period ends.');
+            }
+            
+            loadRentRequests(); // Reload the requests
+            loadEquipmentFromDB(); // Refresh equipment data
+        } else {
+            showToast('Error updating rent request', 'error');
+        }
+    } catch (error) {
+        console.error('Error updating rent request:', error);
+        showToast('Error updating rent request', 'error');
+    }
+}
+
+// UPDATE THE EXISTING updateBookingStatus function - REPLACE IT with this:
+async function updateBookingStatus(bookingId, status) {
+    try {
+        const response = await fetch(`/api/vendor/booking/${bookingId}/update`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status: status })
+        });
+        
+        if (response.ok) {
+            // If confirming a booking (purchase), decrease stock
+            if (status === 'confirmed') {
+                const booking = await getBookingDetails(bookingId);
+                if (booking && booking.equipment_id) {
+                    // For purchases, decrease by quantity (default 1)
+                    const quantity = booking.quantity || 1;
+                    await updateEquipmentStock(booking.equipment_id, -quantity);
+                }
+            }
+            
+            // If cancelling a confirmed booking, increase stock
+            if (status === 'cancelled') {
+                const booking = await getBookingDetails(bookingId);
+                if (booking && booking.equipment_id && booking.status === 'confirmed') {
+                    const quantity = booking.quantity || 1;
+                    await updateEquipmentStock(booking.equipment_id, quantity);
+                }
+            }
+            
+            showToast(`Booking ${status} successfully`);
+            loadAllBookings(); // Reload bookings
+        } else {
+            showToast('Error updating booking', 'error');
+        }
+    } catch (error) {
+        console.error('Error updating booking:', error);
+        showToast('Error updating booking', 'error');
+    }
+}
+function viewBooking(bookingId) {
+    // In a real app, this would show a detailed view of the booking
+    alert(`Viewing booking details for #${bookingId}`);
+}
+
+    // ================= RENT REQUESTS FUNCTIONS =================
+
+   // ================= Load Rent Requests with Return Reminder Button ==================
+// ================= Load Rent Requests with Automatic Reminder Status ==================
+
+// Update the loadRentRequests function in vendor dashboard
+function loadRentRequests() {
+    const container = document.querySelector('.rent-requests-list');
+    const noData = document.querySelector('#rentRequestsContainer .no-data');
+    
+    container.innerHTML = '<p style="text-align: center; padding: 20px; color: var(--gray);">Loading rent requests...</p>';
+    
+    const statusFilter = document.getElementById('rentRequestFilter').value;
+    
+    fetch(`/api/vendor/rent-requests?status=${statusFilter}`)
+        .then(response => response.json())
+        .then(rentRequests => {
+            container.innerHTML = '';
+            
+            if (rentRequests.length === 0) {
+                noData.style.display = 'block';
+                container.style.display = 'none';
+                return;
+            }
+            
+            noData.style.display = 'none';
+            container.style.display = 'block';
+            
+            rentRequests.forEach(request => {
+                const requestElement = createVendorRentRequestCard(request);
+                container.appendChild(requestElement);
+            });
+            
+            // Add event listeners
+            addRentRequestEventListeners();
+            
+        })
+        .catch(error => {
+            console.error('❌ Error fetching rent requests:', error);
+            container.innerHTML = '<p style="text-align: center; padding: 20px; color: var(--accent);">Error loading rent requests</p>';
+        });
+}
+
+function createVendorRentRequestCard(request) {
+    const requestElement = document.createElement('div');
+    requestElement.className = 'card';
+    
+    const statusClass = getVendorStatusClass(request.status);
+    const today = new Date();
+    const endDate = new Date(request.end_date);
+    const isOverdue = endDate < today;
+    
+    let actionButtons = '';
+    
+    if (request.status === 'pending') {
+        actionButtons = `
+            <button class="btn btn-success approve-request" data-id="${request.id}">
+                <i class="fas fa-check"></i> Approve
+            </button>
+            <button class="btn btn-danger reject-request" data-id="${request.id}">
+                <i class="fas fa-times"></i> Reject
+            </button>
+        `;
+    } else if (request.status === 'returned') {
+        actionButtons = `
+            <button class="btn btn-success complete-request" data-id="${request.id}">
+                <i class="fas fa-check-double"></i> Approve Return & Complete
+            </button>
+        `;
+    } else if (request.status === 'approved' && isOverdue) {
+        actionButtons = `
+            <span class="item-badge badge-unavailable">Waiting for Farmer Return</span>
+        `;
+    }
+    
+    requestElement.innerHTML = `
+        <div class="request-header">
+            <h3 style="margin: 0;">${request.equipment_name}</h3>
+            <span class="rent-status-badge ${statusClass}">${getVendorStatusText(request.status)}</span>
+        </div>
+        
+        <div class="request-details">
+            <div><strong>Customer:</strong> ${request.user_name}</div>
+            <div><strong>Phone:</strong> ${request.user_phone}</div>
+            <div><strong>Rental Period:</strong> ${request.start_date} to ${request.end_date}</div>
+            <div><strong>Total Amount:</strong> ₹${request.total_amount}</div>
+            ${isOverdue ? '<div style="color: var(--accent);"><strong>⚠️ Rental period ended</strong></div>' : ''}
+        </div>
+        
+        <div class="request-actions">
+            ${actionButtons}
+        </div>
+    `;
+    
+    return requestElement;
+}
+
+function getVendorStatusClass(status) {
+    const statusClasses = {
+        'pending': 'status-pending',
+        'approved': 'status-approved',
+        'return_pending': 'status-pending',
+        'returned': 'status-pending',
+        'completed': 'status-completed',
+        'rejected': 'status-rejected'
+    };
+    return statusClasses[status] || 'status-pending';
+}
+
+function getVendorStatusText(status) {
+    const statusTexts = {
+        'pending': 'Pending Approval',
+        'approved': 'Active Rental',
+        'return_pending': 'Pending Return',
+        'returned': 'Returned - Awaiting Approval',
+        'completed': 'Completed',
+        'rejected': 'Rejected'
+    };
+    return statusTexts[status] || status;
+}
+
+function addRentRequestEventListeners() {
+    document.querySelectorAll('.approve-request').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const requestId = this.getAttribute('data-id');
+            updateRentRequestStatus(requestId, 'approved');
+        });
+    });
+    
+    document.querySelectorAll('.reject-request').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const requestId = this.getAttribute('data-id');
+            updateRentRequestStatus(requestId, 'rejected');
+        });
+    });
+
+  // Complete request (approve return)
+    document.querySelectorAll('.complete-request').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const requestId = this.getAttribute('data-id');
+            completeRentRequest(requestId);
+        });
+    });
+}
+async function completeRentRequest(requestId) {
+    try {
+        const response = await fetch(`/api/vendor/rent-request/${requestId}/complete`, {
+            method: 'POST'
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+            showToast('Equipment return approved! Rental completed successfully.');
+            loadRentRequests(); // Reload the requests
+            loadEquipmentFromDB(); // Refresh equipment data
+        } else {
+            showToast(result.error || 'Error completing rent request', 'error');
+        }
+    } catch (error) {
+        console.error('Error completing rent request:', error);
+        showToast('Error completing rent request', 'error');
+    }
+}
+
+
+    async function updateRentRequestStatus(requestId, status) {
+        try {
+            const response = await fetch(`/api/vendor/rent-request/${requestId}/update`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ status: status })
+            });
+            
+            if (response.ok) {
+                showToast(`Rent request ${status} successfully`);
+                loadRentRequests(); // Reload the requests
+            } else {
+                showToast('Error updating rent request', 'error');
+            }
+        } catch (error) {
+            console.error('Error updating rent request:', error);
+            showToast('Error updating rent request', 'error');
+        }
+    }
+
+    // ================= REVIEWS FUNCTIONS =================
+
+    function loadReviews() {
+        reviewsContainer.innerHTML = '';
+        
+        if (reviewsData.length === 0) {
+            reviewsContainer.innerHTML = '<p style="text-align: center; padding: 40px; color: var(--gray);">No reviews yet</p>';
+            return;
+        }
+        
+        reviewsData.forEach(review => {
+            const reviewCard = document.createElement('div');
+            reviewCard.className = 'review-card';
+            
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                stars += `<i class="fas fa-star${i <= review.rating ? '' : '-half-alt'}"></i>`;
+            }
+            
+            reviewCard.innerHTML = `
+                <div class="review-header">
+                    <div class="reviewer">${review.customer}</div>
+                    <div class="review-date">${review.date}</div>
+                </div>
+                <div class="review-rating">
+                    ${stars}
+                </div>
+                <div class="review-content">
+                    <p>${review.comment}</p>
+                </div>
+                <div class="review-meta">
+                    <small>For: ${review.equipment}</small>
+                </div>
+            `;
+            
+            reviewsContainer.appendChild(reviewCard);
+        });
+    }
+
+    // ================= UTILITY FUNCTIONS =================
+
+    // Toast notification function
+    function showToast(message, type = 'success') {
+        toastMessage.textContent = message;
+        
+        if (type === 'error') {
+            toast.style.backgroundColor = '#e53e3e';
+        } else {
+            toast.style.backgroundColor = '#38a169';
+        }
+        
+        toast.classList.add('show');
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+
+    // Screen size check for mobile menu
+    function checkScreenSize() {
+        if (window.innerWidth <= 576) {
+            mobileMenuBtn.style.display = 'block';
+            sidebar.classList.remove('active');
+        } else {
+            mobileMenuBtn.style.display = 'none';
+            sidebar.classList.add('active');
+        }
+    }
+// Initialize cancellation system
+function initCancellationSystem() {
+    console.log('🔄 Initializing cancellation system...');
+    
+    // Add filter event listener
+    const filter = document.getElementById('cancellationFilter');
+    if (filter) {
+        filter.addEventListener('change', () => {
+            displayCancellationRequests(cancellationRequests, filter.value);
+        });
+    }
+    
+    // Load cancellation requests if on that section
+    if (window.location.hash === '#cancellation-requests' || 
+        document.getElementById('cancellation-requests-section')?.classList.contains('active')) {
+        loadCancellationRequests();
+    }
+}
+function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'en,kn',
+        autoDisplay: false
+    }, 'google_translate_element');
+    
+    // Apply saved language
+    const savedLang = localStorage.getItem('selectedLanguage');
+    if(savedLang === 'kn') {
+        setTimeout(() => {
+            var iframe = document.querySelector('.goog-te-menu-frame');
+            if(iframe) {
+                var select = iframe.contentWindow.document.querySelector('.goog-te-menu2-select');
+                if(select) {
+                    select.value = 'kn';
+                    select.dispatchEvent(new Event('change'));
+                }
+            }
+        }, 1000);
+    }
+}
+var script = document.createElement('script');
+script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+document.head.appendChild(script);
+ function showSection(sectionId) {
+    contentSections.forEach(section => {
+        section.classList.remove('active');
+    });
+    
+    const section = document.getElementById(`${sectionId}-section`);
+    if (section) {
+        section.classList.add('active');
+        
+        // Load data when section becomes active
+         if (sectionId === 'cancellation-requests') {
+            loadCancellationRequests();
+        }
+        if (sectionId === 'rent-requests') {
+            loadRentRequests();
+        }
+        if (sectionId === 'dashboard') {
+            updateStats();
+            loadRecentEquipment(); 
+            loadRecentBookings(); // Load recent bookings on dashboard
+        }
+        if (sectionId === 'equipment') {
+            loadEquipment();
+        }
+        if (sectionId === 'bookings') {
+            loadAllBookings(); // Load all bookings when bookings section is active
+        }
+        if (sectionId === 'reviews') {
+            loadReviews();
+        }
+    }
+    // Initialize when vendor dashboard loads
+document.addEventListener('DOMContentLoaded', function() {
+    initCancellationSystem();
+});
+}
+
+    function setActiveNavLink(sectionId) {
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+        });
+        
+        const activeLink = document.querySelector(`.nav-link[data-section="${sectionId}"]`);
+        if (activeLink) {
+            activeLink.classList.add('active');
+        }
+    }
+
+    // ================= INITIALIZATION =================
+
+    // Initialize the dashboard
+    async function initDashboard() {
+        // Load equipment from database
+        await loadEquipmentFromDB();
+        loadRecentBookings();
+        loadAllBookings();
+        loadReviews();
+        updateStats();
+        
+        // Set active section
+        const hash = window.location.hash.substring(1) || 'dashboard';
+        showSection(hash);
+        setActiveNavLink(hash);
+        
+        checkScreenSize();
+        if (bookingFilter) {
+            bookingFilter.addEventListener('change', filterBookings);
+        }
+        
+        // Add rent request filter event listener
+        if (rentRequestFilter) {
+            rentRequestFilter.addEventListener('change', loadRentRequests);
+        }
+    }
+// In your initialization function, add this:
+if (bookingFilter) {
+    bookingFilter.addEventListener('change', loadAllBookings);
+}
+    // ================= EVENT LISTENERS =================
+
+    // Event Listeners
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const section = link.getAttribute('data-section');
+            showSection(section);
+            setActiveNavLink(section);
+            window.location.hash = section;
+        });
+    });
+
+    addEquipmentBtn.addEventListener('click', () => {
+        openEquipmentModal(); // No ID passed for new equipment
+    });
+
+    closeModalBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            rentModal.style.display = 'none';
+        });
+    });
+
+   // Update the cancel button event listener
+cancelBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+    equipmentForm.reset();
+    // Specifically clear stock fields
+    document.getElementById('stockQuantity').value = '';
+    document.getElementById('minStockThreshold').value = '';
+    imagePreviewContainer.style.display = 'none';
+});
+    cancelRentBtn.addEventListener('click', () => {
+        rentModal.style.display = 'none';
+        rentForm.reset();
+    });
+
+    saveEquipmentBtn.addEventListener('click', saveEquipment);
+    confirmRentBtn.addEventListener('click', confirmRental);
+
+    equipmentImage.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                imagePreviewContainer.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            imagePreviewContainer.style.display = 'none';
+        }
+    });
+
+    // Event listeners for rent calculation
+    document.getElementById('rentPricePerDay').addEventListener('input', calculateTotalRent);
+    document.getElementById('rentDays').addEventListener('input', calculateTotalRent);
+
+  document.addEventListener('click', (e) => {
+    // Edit equipment
+    if (e.target.classList.contains('edit-equipment') || e.target.closest('.edit-equipment')) {
+        const button = e.target.classList.contains('edit-equipment') ? e.target : e.target.closest('.edit-equipment');
+        const id = button.getAttribute('data-id');
+        openEquipmentModal(id);
+    }
+    
+    // Delete equipment
+    if (e.target.classList.contains('delete-equipment') || e.target.closest('.delete-equipment')) {
+        const button = e.target.classList.contains('delete-equipment') ? e.target : e.target.closest('.delete-equipment');
+        const id = button.getAttribute('data-id');
+        deleteEquipment(id);
+    }
+    
+    // Give for rent
+    if (e.target.classList.contains('give-for-rent') || e.target.closest('.give-for-rent')) {
+        const button = e.target.classList.contains('give-for-rent') ? e.target : e.target.closest('.give-for-rent');
+        const id = button.getAttribute('data-id');
+        if (!button.disabled) {
+            openRentModal(id);
+        }
+    }
+    
+    // View all equipment button
+    if (e.target.classList.contains('view-all-equipment') || e.target.closest('.view-all-equipment')) {
+        e.preventDefault();
+        const equipmentLink = document.querySelector('.nav-link[data-section="equipment"]');
+        if (equipmentLink) {
+            equipmentLink.click();
+        }
+    }
+    
+    // View all bookings button
+    if (e.target.classList.contains('view-all-bookings') || e.target.closest('.view-all-bookings')) {
+        e.preventDefault();
+        const bookingsLink = document.querySelector('.nav-link[data-section="bookings"]');
+        if (bookingsLink) {
+            bookingsLink.click();
+        }
+    }
+});
+
+
+    logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (confirm('Are you sure you want to logout?')) {
+            window.location.href = "/logout";
+        }
+    });
+
+    mobileMenuBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+    });
+
+    // Initialize the dashboard when the page loads
+    document.addEventListener('DOMContentLoaded', initDashboard);
+
+    // Handle window resize for responsive design
+    window.addEventListener('resize', checkScreenSize);
+
+    </script>
+<style>.goog-te-banner-frame{display:none!important;}.goog-te-gadget{font-size:0!important;}</style>
+</body>
+
+</html>
+
+
+
+
+

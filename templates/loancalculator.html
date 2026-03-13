@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm Equipment Financing Calculator</title>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2e8b57;
+            --secondary-color: #ff7f0e;
+            --light-bg: #f8f9fa;
+            --highlight-bg: #f0fff0;
+            --metric-bg: #e9f5e9;
+            --border-radius: 0.5rem;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .main-header {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        .sub-header {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .center-header {
+            font-size: 1.8rem;
+            color: var(--secondary-color);
+            text-align: center;
+            margin: 2rem 0;
+            background-color: var(--light-bg);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+        }
+        
+        .description {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+        
+        .calculator-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 2rem;
+        }
+        
+        .column {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .input-group {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background-color: var(--light-bg);
+            border-radius: var(--border-radius);
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        
+        .slider-container {
+            margin-bottom: 0.5rem;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            margin-bottom: 0.5rem;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: #d3d3d3;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+        }
+        
+        .value-display {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .metrics-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .metric-box {
+            flex: 1;
+            min-width: 150px;
+            background-color: var(--metric-bg);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+        }
+        
+        .metric-title {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .btn-calculate {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-calculate:hover {
+            background-color: #267349;
+        }
+        
+        .schedule-container {
+            margin-top: 1.5rem;
+        }
+        
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+        
+        .schedule-table th, .schedule-table td {
+            padding: 10px;
+            text-align: right;
+            border: 1px solid #ddd;
+        }
+        
+        .schedule-table th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .schedule-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        .btn-download {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-download:hover {
+            background-color: #e67205;
+        }
+        
+        .chart-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 2rem;
+        }
+        
+        .chart {
+            flex: 1;
+            min-width: 300px;
+            height: 400px;
+        }
+        
+        .tips-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 2rem;
+        }
+        
+        .tip-box {
+            flex: 1;
+            min-width: 250px;
+            background-color: var(--highlight-bg);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .tip-title {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #ddd;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .calculator-container {
+                flex-direction: column;
+            }
+            
+            .chart-container, .tips-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 class="main-header">🚜 Farm Equipment Financing Calculator</h1>
+    <p class="description">
+        This calculator helps farmers determine financing options for agricultural equipment purchases. 
+        Enter the equipment details, your down payment, and loan terms to calculate your EMI payment schedule.
+    </p>
+    
+    <div class="calculator-container">
+        <div class="column">
+            <h2 class="sub-header">Equipment Details</h2>
+            
+            <div class="input-group">
+                <label for="equipment_name">Equipment Name</label>
+                <input type="text" id="equipment_name" value="John Deere Tractor">
+            </div>
+            
+            <div class="input-group">
+                <label for="equipment_price">Equipment Price (₹)</label>
+                <div class="slider-container">
+                    <input type="range" id="equipment_price" min="100000" max="2000000" value="1500000" step="50000">
+                </div>
+                <div class="value-display" id="equipment_price_value">₹1,500,000.00</div>
+            </div>
+            
+            <div class="input-group">
+                <label for="equipment_lifespan">Expected Lifespan (years)</label>
+                <div class="slider-container">
+                    <input type="range" id="equipment_lifespan" min="1" max="20" value="10">
+                </div>
+                <div class="value-display" id="equipment_lifespan_value">10 years</div>
+            </div>
+            
+            <h2 class="sub-header">Financing Options</h2>
+            
+            <div class="input-group">
+                <label for="down_payment">Down Payment (%)</label>
+                <div class="slider-container">
+                    <input type="range" id="down_payment" min="0" max="100" value="20">
+                </div>
+                <div class="value-display" id="down_payment_value">20%</div>
+                <div class="value-display" id="down_payment_amount">Down Payment Amount: ₹300,000.00</div>
+            </div>
+            
+            <div class="input-group">
+                <label for="loan_amount">Loan Amount</label>
+                <div class="value-display" id="loan_amount_value">Loan Amount: ₹1,200,000.00</div>
+            </div>
+            
+            <div class="input-group">
+                <label for="interest_rate">Annual Interest Rate (%)</label>
+                <div class="slider-container">
+                    <input type="range" id="interest_rate" min="1" max="20" value="8.5" step="0.1">
+                </div>
+                <div class="value-display" id="interest_rate_value">8.5%</div>
+            </div>
+            
+            <div class="input-group">
+                <label for="loan_term">Loan Term (years)</label>
+                <div class="slider-container">
+                    <input type="range" id="loan_term" min="1" max="10" value="5">
+                </div>
+                <div class="value-display" id="loan_term_value">5 years</div>
+            </div>
+        </div>
+        
+        <div class="column">
+            <h2 class="sub-header">EMI Calculation</h2>
+            
+            <div class="metrics-container">
+                <div class="metric-box">
+                    <div class="metric-title">EMI</div>
+                    <div class="metric-value" id="emi_value">₹24,624.70</div>
+                </div>
+                
+                <div class="metric-box">
+                    <div class="metric-title">Total Interest</div>
+                    <div class="metric-value" id="total_interest_value">₹277,482.00</div>
+                </div>
+                
+                <div class="metric-box">
+                    <div class="metric-title">Total Payment</div>
+                    <div class="metric-value" id="total_payment_value">₹1,477,482.00</div>
+                </div>
+            </div>
+            
+            <button id="calculate_btn" class="btn-calculate">Calculate Payment Schedule</button>
+            
+            <div id="schedule_container" class="schedule-container" style="display: none;">
+                <h3>Amortization Schedule (First 12 Months)</h3>
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Beginning Balance</th>
+                            <th>EMI</th>
+                            <th>Principal</th>
+                            <th>Interest</th>
+                            <th>Outstanding Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody id="schedule_body">
+                        <!-- Will be populated by JavaScript -->
+                    </tbody>
+                </table>
+                
+                <button id="download_btn" class="btn-download">Download Full Schedule as CSV</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="charts_container" style="display: none;">
+        <h2 class="center-header">📊 Amortization Schedule Chart</h2>
+        
+        <div class="chart-container">
+            <div id="emi_chart" class="chart"></div>
+            <div id="balance_chart" class="chart"></div>
+        </div>
+    </div>
+    
+    <h2 class="sub-header">Financing Tips for Farmers</h2>
+    
+    <div class="tips-container">
+        <div class="tip-box">
+            <h3 class="tip-title">💰 Government Schemes</h3>
+            <p>Check for agricultural subsidies and low-interest loan programs offered by the government for farmers.</p>
+        </div>
+        
+        <div class="tip-box">
+            <h3 class="tip-title">📈 Seasonal Considerations</h3>
+            <p>Time your purchase to align with harvest seasons when cash flow is typically better.</p>
+        </div>
+        
+        <div class="tip-box">
+            <h3 class="tip-title">🔧 Maintenance Costs</h3>
+            <p>Remember to factor in ongoing maintenance costs which can be 2-5% of equipment value annually.</p>
+        </div>
+    </div>
+    
+    <footer>
+        <p>This calculator is for estimation purposes only. Actual loan terms may vary based on creditworthiness and lender policies.</p>
+    </footer>
+
+    <script>
+        // Format number as currency
+        function formatCurrency(amount) {
+            return '₹' + amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        }
+        
+        // Update slider value displays
+        function updateSliderValues() {
+            document.getElementById('equipment_price_value').textContent = 
+                formatCurrency(parseFloat(document.getElementById('equipment_price').value));
+            
+            document.getElementById('equipment_lifespan_value').textContent = 
+                document.getElementById('equipment_lifespan').value + ' years';
+            
+            document.getElementById('down_payment_value').textContent = 
+                document.getElementById('down_payment').value + '%';
+            
+            document.getElementById('interest_rate_value').textContent = 
+                document.getElementById('interest_rate').value + '%';
+            
+            document.getElementById('loan_term_value').textContent = 
+                document.getElementById('loan_term').value + ' years';
+            
+            // Calculate and update down payment amount and loan amount
+            const equipmentPrice = parseFloat(document.getElementById('equipment_price').value);
+            const downPaymentPercent = parseFloat(document.getElementById('down_payment').value);
+            const downPaymentAmount = (downPaymentPercent / 100) * equipmentPrice;
+            const loanAmount = equipmentPrice - downPaymentAmount;
+            
+            document.getElementById('down_payment_amount').textContent = 
+                'Down Payment Amount: ' + formatCurrency(downPaymentAmount);
+            
+            document.getElementById('loan_amount_value').textContent = 
+                'Loan Amount: ' + formatCurrency(loanAmount);
+            
+            // Calculate and update EMI values
+            calculateEMI();
+        }
+        
+        // Calculate EMI and related values
+        function calculateEMI() {
+            const equipmentPrice = parseFloat(document.getElementById('equipment_price').value);
+            const downPaymentPercent = parseFloat(document.getElementById('down_payment').value);
+            const interestRate = parseFloat(document.getElementById('interest_rate').value);
+            const loanTerm = parseFloat(document.getElementById('loan_term').value);
+            
+            const downPaymentAmount = (downPaymentPercent / 100) * equipmentPrice;
+            const loanAmount = equipmentPrice - downPaymentAmount;
+            
+            const monthlyInterest = interestRate / 100 / 12;
+            const numPayments = loanTerm * 12;
+            
+            let monthlyPayment;
+            if (monthlyInterest > 0) {  // Fixed: Changed from interestRate > 0 to monthlyInterest > 0
+                monthlyPayment = (loanAmount * monthlyInterest * Math.pow(1 + monthlyInterest, numPayments)) / 
+                                (Math.pow(1 + monthlyInterest, numPayments) - 1);
+            } else {
+                monthlyPayment = loanAmount / numPayments;
+            }
+            
+            const totalPayment = monthlyPayment * numPayments;
+            const totalInterest = totalPayment - loanAmount;
+            
+            document.getElementById('emi_value').textContent = formatCurrency(monthlyPayment);
+            document.getElementById('total_interest_value').textContent = formatCurrency(totalInterest);
+            document.getElementById('total_payment_value').textContent = formatCurrency(totalPayment);
+            
+            return {
+                monthlyPayment,
+                totalPayment,
+                totalInterest,
+                loanAmount,
+                monthlyInterest,
+                numPayments
+            };
+        }
+        
+        // Generate amortization schedule
+        function generateSchedule() {
+            const calcResults = calculateEMI();
+            const monthlyPayment = calcResults.monthlyPayment;
+            const monthlyInterest = calcResults.monthlyInterest;
+            const numPayments = calcResults.numPayments;
+            let balance = calcResults.loanAmount;
+            
+            const scheduleData = [];
+            
+            for (let month = 1; month <= numPayments; month++) {
+                const interestPayment = balance * monthlyInterest;
+                const principalPayment = monthlyPayment - interestPayment;
+                balance -= principalPayment;
+                
+                scheduleData.push({
+                    month: month,
+                    beginningBalance: balance + principalPayment,
+                    emi: monthlyPayment,
+                    principal: principalPayment,
+                    interest: interestPayment,
+                    outstandingBalance: Math.max(0, balance)
+                });
+            }
+            
+            return scheduleData;
+        }
+        
+        // Display amortization schedule
+        function displaySchedule() {
+            const scheduleData = generateSchedule();
+            const scheduleBody = document.getElementById('schedule_body');
+            scheduleBody.innerHTML = '';
+            
+            // Show only first 12 months in the table
+            for (let i = 0; i < Math.min(12, scheduleData.length); i++) {
+                const row = scheduleData[i];
+                const tr = document.createElement('tr');
+                
+                tr.innerHTML = `
+                    <td>${row.month}</td>
+                    <td>${formatCurrency(row.beginningBalance)}</td>
+                    <td>${formatCurrency(row.emi)}</td>
+                    <td>${formatCurrency(row.principal)}</td>
+                    <td>${formatCurrency(row.interest)}</td>
+                    <td>${formatCurrency(row.outstandingBalance)}</td>
+                `;
+                
+                scheduleBody.appendChild(tr);
+            }
+            
+            document.getElementById('schedule_container').style.display = 'block';
+            
+            // Create charts
+            createCharts(scheduleData);
+        }
+        
+        // Create visualization charts
+        function createCharts(scheduleData) {
+            // Prepare data for first 12 months
+            const first12Months = scheduleData.slice(0, 12);
+            const months = first12Months.map(item => item.month);
+            const principals = first12Months.map(item => item.principal);
+            const interests = first12Months.map(item => item.interest);
+            const balances = first12Months.map(item => item.outstandingBalance);
+            
+            // EMI Breakdown Chart
+            const emiChart = document.getElementById('emi_chart');
+            Plotly.newPlot(emiChart, [{
+                x: months,
+                y: principals,
+                name: 'Principal',
+                type: 'bar',
+                marker: { color: '#2e8b57' }
+            }, {
+                x: months,
+                y: interests,
+                name: 'Interest',
+                type: 'bar',
+                marker: { color: '#ff7f0e' }
+            }], {
+                title: 'EMI Breakdown (First 12 Months)',
+                barmode: 'stack',
+                xaxis: { title: 'Month' },
+                yaxis: { title: 'Amount (₹)' },
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)',
+            });
+            
+            // Outstanding Balance Chart
+            const balanceChart = document.getElementById('balance_chart');
+            Plotly.newPlot(balanceChart, [{
+                x: months,
+                y: balances,
+                mode: 'lines+markers',
+                name: 'Outstanding Balance',
+                line: { color: '#1f77b4', width: 3 }
+            }], {
+                title: 'Outstanding Balance Over Time (First 12 Months)',
+                xaxis: { title: 'Month' },
+                yaxis: { title: 'Balance (₹)' },
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)',
+            });
+            
+            document.getElementById('charts_container').style.display = 'block';
+        }
+        
+        // Download CSV file
+        function downloadCSV() {
+            const scheduleData = generateSchedule();
+            
+            // Create CSV content
+            let csvContent = "Month,Beginning Balance,EMI,Principal,Interest,Outstanding Balance\n";
+            
+            scheduleData.forEach(row => {
+                csvContent += `${row.month},${row.beginningBalance.toFixed(2)},${row.emi.toFixed(2)},${row.principal.toFixed(2)},${row.interest.toFixed(2)},${row.outstandingBalance.toFixed(2)}\n`;
+            });
+            
+            // Create download link
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'emi_schedule.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // Initialize event listeners
+        function initEventListeners() {
+            // Update values when sliders change
+            const sliders = document.querySelectorAll('input[type="range"]');
+            sliders.forEach(slider => {
+                slider.addEventListener('input', updateSliderValues);
+            });
+            
+            // Calculate button
+            document.getElementById('calculate_btn').addEventListener('click', () => {
+                displaySchedule();
+            });
+            
+            // Download button
+            document.getElementById('download_btn').addEventListener('click', downloadCSV);
+        }
+        
+        // Initialize the application
+        function init() {
+            updateSliderValues();
+            initEventListeners();
+        }
+        
+        // Run initialization when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

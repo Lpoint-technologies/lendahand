@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmer Login - Lend A Hand</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), 
+                        url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            color: #2c3e50;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 40px;
+            position: relative;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .header::after {
+            content: '';
+            display: block;
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(to right, #4CAF50, #2E7D32);
+            margin: 20px auto;
+            border-radius: 2px;
+        }
+        
+        .back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #2E7D32;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .back-button:hover {
+            text-decoration: underline;
+        }
+        
+        .login-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            border: 1px solid rgba(76, 175, 80, 0.2);
+        }
+        
+        .form-title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2E7D32;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            border-color: #2E7D32;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 40px;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+        
+        .password-toggle:hover {
+            color: #2E7D32;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+            background: #2E7D32;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+        
+        .btn:hover {
+            background: #1B5E20;
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 25px;
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            position: relative;
+        }
+        
+        .footer::before {
+            content: '';
+            display: block;
+            width: 200px;
+            height: 2px;
+            background: linear-gradient(to right, transparent, rgba(76, 175, 80, 0.3), transparent);
+            margin: 0 auto 20px;
+        }
+        
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1rem;
+            color: #7f8c8d;
+        }
+        
+        .register-link a {
+            color: #2E7D32;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .forgot-password {
+            text-align: right;
+            margin-top: -10px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .forgot-password a {
+            color: #7f8c8d;
+            text-decoration: none;
+        }
+        
+        .forgot-password a:hover {
+            text-decoration: underline;
+            color: #2E7D32;
+        }
+        
+        @media (max-width: 768px) {
+            .login-container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+         .goog-te-banner-frame,
+    .goog-te-banner,
+    .goog-te-banner-wrapper,
+    .skiptranslate,
+    #goog-gt-tt,
+    .goog-te-balloon-frame,
+    .goog-tooltip,
+    .goog-tooltip:hover,
+    .goog-text-highlight {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        width: 0 !important;
+        position: absolute !important;
+    }
+    
+    /* Prevent body shift */
+    body {
+        top: 0px !important;
+        position: static !important;
+    }
+    
+    /* Hide the translation menu if it appears */
+    .goog-te-menu-frame {
+        display: none !important;
+    }
+    /* Forgot Password Link */
+.forgot-password-link {
+    text-align: right;
+    margin-bottom: 20px;
+}
+
+.forgot-password-link a {
+    color: #e74c3c;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.forgot-password-link a:hover {
+    text-decoration: underline;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 10% auto;
+    padding: 30px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    animation: modalFade 0.3s;
+}
+
+@keyframes modalFade {
+    from { opacity: 0; transform: translateY(-50px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+    color: #2980b9;
+    margin: 0;
+}
+
+.close-btn {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-btn:hover {
+    color: #000;
+}
+
+.step-indicator {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 25px;
+}
+
+.step {
+    text-align: center;
+    flex: 1;
+    position: relative;
+}
+
+.step-number {
+    width: 30px;
+    height: 30px;
+    background-color: #ddd;
+    color: #666;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
+    font-weight: bold;
+}
+
+.step.active .step-number {
+    background-color: #2980b9;
+    color: white;
+}
+
+.step.completed .step-number {
+    background-color: #27ae60;
+    color: white;
+}
+
+.step-label {
+    font-size: 0.8rem;
+    color: #777;
+}
+
+.step.active .step-label {
+    color: #2980b9;
+    font-weight: 600;
+}
+
+.step::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background-color: #ddd;
+    z-index: -1;
+}
+
+.step:last-child::after {
+    display: none;
+}
+
+.form-step {
+    display: none;
+}
+
+.form-step.active {
+    display: block;
+}
+
+.otp-inputs {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px 0;
+}
+
+.otp-inputs input {
+    width: 50px;
+    height: 50px;
+    text-align: center;
+    font-size: 1.5rem;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+}
+
+.otp-inputs input:focus {
+    border-color: #2980b9;
+    outline: none;
+}
+
+.timer {
+    text-align: center;
+    margin: 15px 0;
+    color: #e74c3c;
+    font-weight: 600;
+}
+
+.resend-link {
+    text-align: center;
+    margin: 15px 0;
+}
+
+.resend-link a {
+    color: #2980b9;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.resend-link a:hover {
+    text-decoration: underline;
+}
+
+.resend-link.disabled {
+    color: #95a5a6;
+}
+
+.password-requirements {
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 10px 0;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.password-requirements ul {
+    margin: 5px 0 0 20px;
+}
+
+.password-strength {
+    height: 5px;
+    background-color: #ddd;
+    border-radius: 3px;
+    margin: 5px 0;
+    overflow: hidden;
+}
+
+.password-strength-bar {
+    height: 100%;
+    width: 0%;
+    background-color: #e74c3c;
+    transition: width 0.3s, background-color 0.3s;
+}
+
+.btn-secondary {
+    background-color: #95a5a6;
+}
+
+.btn-secondary:hover {
+    background-color: #7f8c8d;
+}
+
+.btn-success {
+    background-color: #27ae60;
+}
+
+.btn-success:hover {
+    background-color: #219653;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.button-group .btn {
+    flex: 1;
+}
+
+@media (max-width: 768px) {
+    .modal-content {
+        margin: 20% auto;
+        padding: 20px;
+    }
+    
+    .otp-inputs input {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+}
+    </style>
+</head>
+<body>
+   
+<!-- Google Translate for this page -->
+<div id="google_translate_element"></div>
+    <div class="header">
+        <h1>Farmer Login</h1>
+        <p>Access your farming cooperative account</p>
+    </div>
+    
+    <div class="container">
+        <a href="{{ url_for('dashboard') }}" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+        
+        <div class="login-container">
+            <h2 class="form-title">Sign In to Your Account</h2>
+            
+            <!-- Flash messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <form method="POST" action="{{ url_for('farmer_login') }}" id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                    <i class="fas fa-eye password-toggle" id="togglePassword"></i>
+                </div>
+                
+               <!-- ADD THIS LINE -->
+<div class="forgot-password-link">
+    <a href="#" id="forgotPasswordLink">Forgot Password?</a>
+</div>
+
+                
+                <button type="submit" class="btn">Login</button>
+                
+                <div class="register-link">
+                    Don't have an account? <a href="{{ url_for('userreg') }}">Register here</a>
+                </div>
+            </form>
+        </div>
+    </div>
+     <!-- Forgot Password Modal -->
+    <div id="forgotPasswordModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Reset Password</h3>
+                <span class="close-btn">&times;</span>
+            </div>
+            
+            <div class="step-indicator">
+                <div class="step active" id="step1">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Enter Phone</div>
+                </div>
+                <div class="step" id="step2">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Verify OTP</div>
+                </div>
+                <div class="step" id="step3">
+                    <div class="step-number">3</div>
+                    <div class="step-label">New Password</div>
+                </div>
+            </div>
+            
+            <!-- Step 1: Enter Phone -->
+            <div id="step1-form" class="form-step active">
+                <div class="form-group">
+                    <label for="resetPhone">Enter your registered phone number</label>
+                    <input type="tel" id="resetPhone" placeholder="Enter your phone number" required>
+                </div>
+                <div class="alert" id="step1-alert" style="display: none;"></div>
+                <button class="btn" id="sendOtpBtn">Send OTP</button>
+            </div>
+            
+            <!-- Step 2: Verify OTP -->
+            <div id="step2-form" class="form-step">
+                <p>We've sent a 6-digit OTP to <span id="phoneDisplay"></span></p>
+                <div class="otp-inputs">
+                    <input type="text" maxlength="1" class="otp-input" data-index="1">
+                    <input type="text" maxlength="1" class="otp-input" data-index="2">
+                    <input type="text" maxlength="1" class="otp-input" data-index="3">
+                    <input type="text" maxlength="1" class="otp-input" data-index="4">
+                    <input type="text" maxlength="1" class="otp-input" data-index="5">
+                    <input type="text" maxlength="1" class="otp-input" data-index="6">
+                </div>
+                <div class="timer" id="otpTimer">02:00</div>
+                <div class="resend-link" id="resendLink">
+                    <a href="#" id="resendOtpLink">Resend OTP</a>
+                </div>
+                <div class="alert" id="step2-alert" style="display: none;"></div>
+                <div class="button-group">
+                    <button class="btn btn-secondary" id="backToStep1Btn">Back</button>
+                    <button class="btn" id="verifyOtpBtn">Verify OTP</button>
+                </div>
+            </div>
+            
+            <!-- Step 3: New Password -->
+            <div id="step3-form" class="form-step">
+                <div class="form-group">
+                    <label for="newPassword">New Password</label>
+                    <input type="password" id="newPassword" placeholder="Enter new password" required>
+                    <i class="fas fa-eye password-toggle" id="toggleNewPassword"></i>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" placeholder="Confirm new password" required>
+                    <i class="fas fa-eye password-toggle" id="toggleConfirmPassword"></i>
+                </div>
+                
+                <div class="password-requirements">
+                    <strong>Password Requirements:</strong>
+                    <ul>
+                        <li>At least 8 characters</li>
+                        <li>Contains uppercase and lowercase letters</li>
+                        <li>Contains at least one number</li>
+                        <li>Contains at least one special character (!@#$%^&*)</li>
+                    </ul>
+                </div>
+                
+                <div class="password-strength">
+                    <div class="password-strength-bar" id="passwordStrengthBar"></div>
+                </div>
+                
+                <div class="alert" id="step3-alert" style="display: none;"></div>
+                
+                <div class="button-group">
+                    <button class="btn btn-secondary" id="backToStep2Btn">Back</button>
+                    <button class="btn btn-success" id="resetPasswordBtn">Reset Password</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Toggle password visibility for login form
+        const togglePassword = document.querySelector('#togglePassword');
+        const password = document.querySelector('#password');
+        
+        if (togglePassword && password) {
+            togglePassword.addEventListener('click', function() {
+                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                password.setAttribute('type', type);
+                this.classList.toggle('fa-eye');
+                this.classList.toggle('fa-eye-slash');
+            });
+        }
+        
+        // ============ FORGOT PASSWORD JAVASCRIPT ============
+        // Forgot Password Modal Logic
+        const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+        const forgotPasswordModal = document.getElementById('forgotPasswordModal');
+        
+        // Check if elements exist before adding event listeners
+        if (forgotPasswordLink && forgotPasswordModal) {
+            // Modal open
+            forgotPasswordLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Forgot password link clicked');
+                forgotPasswordModal.style.display = 'block';
+                resetForm();
+            });
+        }
+        
+        // Close modal
+        const closeBtn = document.querySelector('.close-btn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                forgotPasswordModal.style.display = 'none';
+                resetForm();
+            });
+        }
+        
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === forgotPasswordModal) {
+                forgotPasswordModal.style.display = 'none';
+                resetForm();
+            }
+        });
+        
+        // Step 1: Send OTP
+        const sendOtpBtn = document.getElementById('sendOtpBtn');
+        if (sendOtpBtn) {
+            sendOtpBtn.addEventListener('click', () => {
+                const resetPhoneInput = document.getElementById('resetPhone');
+                if (!resetPhoneInput) {
+                    console.error('resetPhone input not found');
+                    return;
+                }
+                
+                const resetPhone = resetPhoneInput.value.trim();
+                
+                if (!resetPhone) {
+                    showAlert('step1-alert', 'Phone number is required', 'error');
+                    return;
+                }
+                
+                if (!/^\d{10}$/.test(resetPhone)) {
+                    showAlert('step1-alert', 'Please enter a valid 10-digit phone number', 'error');
+                    return;
+                }
+                
+                console.log('Sending OTP to farmer:', resetPhone);
+                
+                // Use farmer forgot password route
+                fetch('/farmer/forgot_password_modal', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `phone=${encodeURIComponent(resetPhone)}`
+                })
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Response data:', data);
+                    if (data.success) {
+                        showAlert('step1-alert', data.message, 'success');
+                        const phoneDisplay = document.getElementById('phoneDisplay');
+                        if (phoneDisplay) {
+                            phoneDisplay.textContent = resetPhone;
+                        }
+                        goToStep(2);
+                        startOTPTimer();
+                    } else {
+                        showAlert('step1-alert', data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('step1-alert', 'An error occurred. Please try again.', 'error');
+                });
+            });
+        }
+        
+        // Step 2: Verify OTP
+        const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+        if (verifyOtpBtn) {
+            verifyOtpBtn.addEventListener('click', () => {
+                const otp = getOTPFromInputs();
+                
+                if (otp.length !== 6) {
+                    showAlert('step2-alert', 'Please enter the complete 6-digit OTP', 'error');
+                    return;
+                }
+                
+                console.log('Verifying OTP:', otp);
+                
+                // Use farmer verify OTP route
+                fetch('/farmer/verify_otp_modal', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `otp=${encodeURIComponent(otp)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Verify OTP response:', data);
+                    if (data.success) {
+                        showAlert('step2-alert', data.message, 'success');
+                        goToStep(3);
+                        stopOTPTimer();
+                    } else {
+                        showAlert('step2-alert', data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('step2-alert', 'An error occurred. Please try again.', 'error');
+                });
+            });
+        }
+        
+        // Step 3: Reset Password
+        const resetPasswordBtn = document.getElementById('resetPasswordBtn');
+        if (resetPasswordBtn) {
+            resetPasswordBtn.addEventListener('click', () => {
+                const newPassword = document.getElementById('newPassword')?.value;
+                const confirmPassword = document.getElementById('confirmPassword')?.value;
+                
+                if (!newPassword || !confirmPassword) {
+                    showAlert('step3-alert', 'Please fill in both password fields', 'error');
+                    return;
+                }
+                
+                if (newPassword !== confirmPassword) {
+                    showAlert('step3-alert', 'Passwords do not match!', 'error');
+                    return;
+                }
+                
+                // Validate password strength
+                if (!validatePassword(newPassword)) {
+                    showAlert('step3-alert', 'Password does not meet requirements', 'error');
+                    return;
+                }
+                
+                console.log('Resetting farmer password');
+                
+                // Use farmer reset password route
+                fetch('/farmer/reset_password_modal', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `new_password=${encodeURIComponent(newPassword)}&confirm_password=${encodeURIComponent(confirmPassword)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Reset password response:', data);
+                    if (data.success) {
+                        showAlert('step3-alert', data.message, 'success');
+                        setTimeout(() => {
+                            forgotPasswordModal.style.display = 'none';
+                            resetForm();
+                            alert('Password reset successfully! Please login with your new password.');
+                        }, 1500);
+                    } else {
+                        showAlert('step3-alert', data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('step3-alert', 'An error occurred. Please try again.', 'error');
+                });
+            });
+        }
+        
+        // Back buttons
+        const backToStep1Btn = document.getElementById('backToStep1Btn');
+        if (backToStep1Btn) {
+            backToStep1Btn.addEventListener('click', () => {
+                goToStep(1);
+                stopOTPTimer();
+            });
+        }
+        
+        const backToStep2Btn = document.getElementById('backToStep2Btn');
+        if (backToStep2Btn) {
+            backToStep2Btn.addEventListener('click', () => {
+                goToStep(2);
+            });
+        }
+        
+        // Resend OTP
+        const resendOtpLink = document.getElementById('resendOtpLink');
+        if (resendOtpLink) {
+            resendOtpLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                if (resendOtpLink.classList.contains('disabled')) {
+                    return;
+                }
+                
+                const resetPhoneInput = document.getElementById('resetPhone');
+                const resetPhone = resetPhoneInput?.value.trim();
+                
+                if (!resetPhone) {
+                    showAlert('step2-alert', 'Phone number not found', 'error');
+                    return;
+                }
+                
+                console.log('Resending OTP to farmer:', resetPhone);
+                
+                // Use farmer resend OTP route
+                fetch('/farmer/resend_otp_modal', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `phone=${encodeURIComponent(resetPhone)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Resend OTP response:', data);
+                    if (data.success) {
+                        showAlert('step2-alert', 'New OTP sent successfully!', 'success');
+                        startOTPTimer();
+                    } else {
+                        showAlert('step2-alert', data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('step2-alert', 'Failed to resend OTP', 'error');
+                });
+            });
+        }
+        
+        // OTP Input Auto-focus
+        const otpInputs = document.querySelectorAll('.otp-input');
+        otpInputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if (e.target.value.length === 1 && index < otpInputs.length - 1) {
+                    otpInputs[index + 1].focus();
+                }
+            });
+            
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                    otpInputs[index - 1].focus();
+                }
+            });
+        });
+        
+        // Password strength checker
+        const newPasswordInput = document.getElementById('newPassword');
+        const passwordStrengthBar = document.getElementById('passwordStrengthBar');
+        
+        if (newPasswordInput && passwordStrengthBar) {
+            newPasswordInput.addEventListener('input', () => {
+                const strength = checkPasswordStrength(newPasswordInput.value);
+                passwordStrengthBar.style.width = strength.percentage + '%';
+                passwordStrengthBar.style.backgroundColor = strength.color;
+            });
+        }
+        
+        // Toggle new password visibility
+        const toggleNewPassword = document.getElementById('toggleNewPassword');
+        const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+        
+        if (toggleNewPassword) {
+            toggleNewPassword.addEventListener('click', function() {
+                const passwordField = document.getElementById('newPassword');
+                if (passwordField) {
+                    const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordField.setAttribute('type', type);
+                    this.classList.toggle('fa-eye');
+                    this.classList.toggle('fa-eye-slash');
+                }
+            });
+        }
+        
+        if (toggleConfirmPassword) {
+            toggleConfirmPassword.addEventListener('click', function() {
+                const passwordField = document.getElementById('confirmPassword');
+                if (passwordField) {
+                    const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordField.setAttribute('type', type);
+                    this.classList.toggle('fa-eye');
+                    this.classList.toggle('fa-eye-slash');
+                }
+            });
+        }
+        
+        // Helper Functions
+        function goToStep(step) {
+            console.log('Going to step:', step);
+            // Update step indicators
+            document.querySelectorAll('.step').forEach((stepEl, index) => {
+                stepEl.classList.remove('active', 'completed');
+                if (index + 1 < step) {
+                    stepEl.classList.add('completed');
+                } else if (index + 1 === step) {
+                    stepEl.classList.add('active');
+                }
+            });
+            
+            // Show appropriate form step
+            document.querySelectorAll('.form-step').forEach((formStep, index) => {
+                formStep.classList.remove('active');
+                if (index + 1 === step) {
+                    formStep.classList.add('active');
+                }
+            });
+        }
+        
+        function showAlert(elementId, message, type) {
+            const alertElement = document.getElementById(elementId);
+            if (alertElement) {
+                alertElement.textContent = message;
+                alertElement.className = 'alert';
+                alertElement.classList.add(`alert-${type === 'error' ? 'error' : 'success'}`);
+                alertElement.style.display = 'block';
+                
+                // Auto hide after 5 seconds
+                setTimeout(() => {
+                    alertElement.style.display = 'none';
+                }, 5000);
+            }
+        }
+        
+        function getOTPFromInputs() {
+            const otpInputs = document.querySelectorAll('.otp-input');
+            let otp = '';
+            otpInputs.forEach(input => {
+                otp += input.value;
+            });
+            return otp;
+        }
+        
+        function startOTPTimer() {
+            timeLeft = 120;
+            updateTimerDisplay();
+            clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                
+                if (timeLeft <= 0) {
+                    stopOTPTimer();
+                    const resendOtpLink = document.getElementById('resendOtpLink');
+                    if (resendOtpLink) {
+                        resendOtpLink.classList.remove('disabled');
+                    }
+                }
+            }, 1000);
+            
+            const resendOtpLink = document.getElementById('resendOtpLink');
+            if (resendOtpLink) {
+                resendOtpLink.classList.add('disabled');
+            }
+        }
+        
+        function stopOTPTimer() {
+            clearInterval(timerInterval);
+        }
+        
+        function updateTimerDisplay() {
+            const otpTimer = document.getElementById('otpTimer');
+            if (otpTimer) {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                otpTimer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }
+        
+        function validatePassword(password) {
+            // At least 8 characters, uppercase, lowercase, number, special character
+            const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+            return regex.test(password);
+        }
+        
+        function checkPasswordStrength(password) {
+            let score = 0;
+            
+            // Length check
+            if (password.length >= 8) score += 1;
+            if (password.length >= 12) score += 1;
+            
+            // Complexity checks
+            if (/[A-Z]/.test(password)) score += 1;
+            if (/[a-z]/.test(password)) score += 1;
+            if (/[0-9]/.test(password)) score += 1;
+            if (/[!@#$%^&*]/.test(password)) score += 1;
+            
+            // Calculate percentage
+            const maxScore = 6;
+            const percentage = (score / maxScore) * 100;
+            
+            // Determine color
+            let color = '#e74c3c'; // Red (weak)
+            if (percentage >= 66) {
+                color = '#27ae60'; // Green (strong)
+            } else if (percentage >= 33) {
+                color = '#f39c12'; // Orange (medium)
+            }
+            
+            return { percentage, color };
+        }
+        
+        function resetForm() {
+            console.log('Resetting form');
+            // Reset all inputs
+            const resetPhoneInput = document.getElementById('resetPhone');
+            const newPasswordInput = document.getElementById('newPassword');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            
+            if (resetPhoneInput) resetPhoneInput.value = '';
+            if (newPasswordInput) newPasswordInput.value = '';
+            if (confirmPasswordInput) confirmPasswordInput.value = '';
+            
+            // Clear OTP inputs
+            document.querySelectorAll('.otp-input').forEach(input => {
+                input.value = '';
+            });
+            
+            // Reset alerts
+            document.querySelectorAll('.alert').forEach(alert => {
+                alert.style.display = 'none';
+            });
+            
+            // Reset steps
+            goToStep(1);
+            stopOTPTimer();
+            const otpTimer = document.getElementById('otpTimer');
+            if (otpTimer) {
+                otpTimer.textContent = '02:00';
+            }
+            
+            const resendOtpLink = document.getElementById('resendOtpLink');
+            if (resendOtpLink) {
+                resendOtpLink.classList.remove('disabled');
+            }
+            
+            // Reset password strength bar
+            const passwordStrengthBar = document.getElementById('passwordStrengthBar');
+            if (passwordStrengthBar) {
+                passwordStrengthBar.style.width = '0%';
+                passwordStrengthBar.style.backgroundColor = '#e74c3c';
+            }
+        }
+
+        function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'en,kn',
+        autoDisplay: false
+    }, 'google_translate_element');
+    
+    // Apply saved language
+    const savedLang = localStorage.getItem('selectedLanguage');
+    if(savedLang === 'kn') {
+        setTimeout(() => {
+            var iframe = document.querySelector('.goog-te-menu-frame');
+            if(iframe) {
+                var select = iframe.contentWindow.document.querySelector('.goog-te-menu2-select');
+                if(select) {
+                    select.value = 'kn';
+                    select.dispatchEvent(new Event('change'));
+                }
+            }
+        }, 1000);
+    }
+}
+var script = document.createElement('script');
+script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+document.head.appendChild(script);
+       
+    </script>
+    <style>.goog-te-banner-frame{display:none!important;}.goog-te-gadget{font-size:0!important;}</style>
+</body>
+</html>

@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmer Registration - Multi-Step Form</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), 
+                        url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            color: #2c3e50;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 40px;
+            position: relative;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .header::after {
+            content: '';
+            display: block;
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(to right, #4CAF50, #2E7D32);
+            margin: 20px auto;
+            border-radius: 2px;
+        }
+        
+        .back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #2E7D32;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .back-button:hover {
+            text-decoration: underline;
+        }
+        
+        .registration-container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            border: 1px solid rgba(76, 175, 80, 0.2);
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .step {
+            text-align: center;
+            flex: 1;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step:not(:last-child):after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 60%;
+            width: 80%;
+            height: 2px;
+            background: #ddd;
+            z-index: 1;
+        }
+        
+        .step-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step.active .step-circle {
+            background: #2E7D32;
+            color: white;
+        }
+        
+        .step.completed .step-circle {
+            background: #1B5E20;
+            color: white;
+        }
+        
+        .step-title {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .step.active .step-title {
+            color: #2E7D32;
+            font-weight: bold;
+        }
+        
+        .form-title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2E7D32;
+        }
+        
+        .form-step {
+            display: none;
+        }
+        
+        .form-step.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #2E7D32;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 40px;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+        
+        .password-toggle:hover {
+            color: #2E7D32;
+        }
+        
+        .password-requirements {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        
+        .password-match {
+            color: #27ae60;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .password-mismatch {
+            color: #e74c3c;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+            background: #2E7D32;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+        
+        .btn:hover {
+            background: #1B5E20;
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 25px;
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            position: relative;
+        }
+        
+        .footer::before {
+            content: '';
+            display: block;
+            width: 200px;
+            height: 2px;
+            background: linear-gradient(to right, transparent, rgba(76, 175, 80, 0.3), transparent);
+            margin: 0 auto 20px;
+        }
+        
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1rem;
+            color: #7f8c8d;
+        }
+        
+        .login-link a {
+            color: #2E7D32;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .navigation-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .file-upload {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+        
+        .file-upload:hover {
+            border-color: #2E7D32;
+        }
+        
+        .file-upload i {
+            font-size: 2rem;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+        
+        .file-upload p {
+            margin: 5px 0;
+            color: #7f8c8d;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-name {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #2E7D32;
+            font-weight: 500;
+        }
+        
+        .file-requirements {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-top: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .registration-container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .step-title {
+                font-size: 0.8rem;
+            }
+        }
+         .goog-te-banner-frame,
+    .goog-te-banner,
+    .goog-te-banner-wrapper,
+    .skiptranslate,
+    #goog-gt-tt,
+    .goog-te-balloon-frame,
+    .goog-tooltip,
+    .goog-tooltip:hover,
+    .goog-text-highlight {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        width: 0 !important;
+        position: absolute !important;
+    }
+    
+    /* Prevent body shift */
+    body {
+        top: 0px !important;
+        position: static !important;
+    }
+    
+    /* Hide the translation menu if it appears */
+    .goog-te-menu-frame {
+        display: none !important;
+    }
+        /* Password strength indicator styles */
+        .password-strength {
+            font-size: 0.85rem;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 5px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+        }
+        
+        .checkbox-item input {
+            width: auto;
+            margin-right: 5px;
+        }
+        
+        .file-path {
+            margin-top: 10px;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border-left: 3px solid #2E7D32;
+            font-size: 0.9rem;
+        }
+        
+       /* Keep only essential file upload styles */
+.file-upload {
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.3s;
+}
+
+.file-upload:hover {
+    border-color: #2E7D32;
+}
+.phone-validation {
+    font-size: 0.9rem;
+    margin-top: 5px;
+    display: none;
+}
+.email-validation {
+    font-size: 0.9rem;
+    margin-top: 5px;
+    display: none;
+}
+.language-selector {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.lang-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.lang-btn.english {
+    background: #007bff;
+    color: white;
+}
+
+.lang-btn.kannada {
+    background: #ff9800;
+    color: white;
+}
+
+.lang-btn.active {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 2px white, 0 0 0 4px currentColor;
+}
+
+.lang-btn i {
+    font-size: 1rem;
+}
+
+/* Hide Google Translate elements */
+#google_translate_element, 
+.goog-te-banner-frame, 
+.goog-te-menu-frame, 
+.goog-te-ftab-frame,
+.skiptranslate {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    z-index: -9999 !important;
+}
+
+body {
+    top: 0 !important;
+}
+    </style>
+</head>
+<body>
+   <!-- Add this inside your login-container or at the top of the page -->
+<div class="language-selector" style="position: absolute; top: 20px; right: 20px; z-index: 1000;">
+    <button class="lang-btn english active" onclick="setLanguage('en')" style="padding: 8px 20px; border: none; border-radius: 20px; background: #007bff; color: white; cursor: pointer; font-weight: bold; margin-right: 10px;">
+        <i class="fas fa-globe-americas"></i> English
+    </button>
+    <button class="lang-btn kannada" onclick="setLanguage('kn')" style="padding: 8px 20px; border: none; border-radius: 20px; background: #ff9800; color: white; cursor: pointer; font-weight: bold;">
+        <i class="fas fa-globe-asia"></i> ಕನ್ನಡ
+    </button>
+</div>
+<div id="google_translate_element" style="display: none !important;"></div>
+    <div class="header">
+        <h1>Farmer Registration</h1>
+        <p>Join our farming cooperative as a grower and access resources</p>
+    </div>
+    
+    <div class="container">
+        <a href="{{ url_for('dashboard') }}" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+        
+        <div class="registration-container">
+            <div class="step-indicator">
+                <div class="step active" id="step1">
+                    <div class="step-circle">1</div>
+                    <div class="step-title">Personal Info</div>
+                </div>
+                <div class="step" id="step2">
+                    <div class="step-circle">2</div>
+                    <div class="step-title">Land Details</div>
+                </div>
+                <div class="step" id="step3">
+                    <div class="step-circle">3</div>
+                    <div class="step-title">RTC Upload</div>
+                </div>
+            </div>
+            
+            <!-- Flash messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <form method="POST" action="{{ url_for('userreg') }}" id="farmerForm" enctype="multipart/form-data">
+                <!-- Step 1: Personal Information -->
+                <div class="form-step active" id="formStep1">
+                    <h2 class="form-title">Personal Information</h2>
+                    
+                    <div class="form-group">
+                        <label for="full_name">Full Name *</label>
+                        <input type="text" id="full_name" name="full_name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="last_name">Last Name *</label>
+                        <input type="text" id="last_name" name="last_name" required>
+                    </div>
+                    
+                  <div class="form-group">
+    <label for="email">Email Address</label>
+    <input type="email" id="email" name="email">
+    <div class="email-validation" id="emailValidation" style="font-size:0.9rem; margin-top:5px; display:none;">
+        Only @gmail.com emails are allowed
+    </div>
+</div>
+                    
+                  <div class="form-group">
+    <label for="phone">Phone Number *</label>
+    <input type="tel" id="phone" name="phone" pattern="[0-9]{10}" maxlength="10" required>
+    <div class="phone-validation" id="phoneValidation" style="font-size:0.9rem; margin-top:5px; display:none;">
+        Phone number must be exactly 10 digits
+    </div>
+</div>
+                    
+                    <div class="form-group">
+                        <label for="password">Password *</label>
+                        <input type="password" id="password" name="password" required>
+                        <i class="fas fa-eye password-toggle" id="togglePassword"></i>
+                        <div class="password-requirements">
+                            Password must be at least 8 characters with uppercase, lowercase, number, and special character
+                        </div>
+                        <div class="password-strength" id="passwordStrength"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirm_password">Confirm Password *</label>
+                        <input type="password" id="confirm_password" name="confirm_password" required>
+                        <i class="fas fa-eye password-toggle" id="toggleConfirmPassword"></i>
+                        <div class="password-match" id="passwordMatch">Passwords match!</div>
+                        <div class="password-mismatch" id="passwordMismatch">Passwords do not match!</div>
+                    </div>
+                    
+                    <div class="navigation-buttons">
+                        <button type="button" class="btn" onclick="nextStep(1)">Next: Land Details</button>
+                    </div>
+                </div>
+                
+                <!-- Step 2: Land Details -->
+                <div class="form-step" id="formStep2">
+                    <h2 class="form-title">Land Details</h2>
+                    
+                    <div class="form-group">
+                        <label for="farm_location">Farm Location *</label>
+                        <input type="text" id="farm_location" name="farm_location" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="farm_size">Farm Size (acres)</label>
+                        <input type="number" id="farm_size" name="farm_size" min="0" step="0.1">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="crop_types">Primary Crops *</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="crop_grains" name="crop_types" value="grains">
+                                <label for="crop_grains">Grains</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="crop_vegetables" name="crop_types" value="vegetables">
+                                <label for="crop_vegetables">Vegetables</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="crop_fruits" name="crop_types" value="fruits">
+                                <label for="crop_fruits">Fruits</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="crop_cash" name="crop_types" value="cash_crops">
+                                <label for="crop_cash">Cash Crops</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="crop_livestock" name="crop_types" value="livestock">
+                                <label for="crop_livestock">Livestock</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="crop_other" name="crop_types" value="other">
+                                <label for="crop_other">Other</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="additional_info">Additional Information</label>
+                        <textarea id="additional_info" name="additional_info" rows="4" placeholder="Tell us about your farming practices, certifications, or special requirements"></textarea>
+                    </div>
+                    
+                    <div class="navigation-buttons">
+                        <button type="button" class="btn btn-secondary" onclick="prevStep(2)">Previous</button>
+                        <button type="button" class="btn" onclick="nextStep(2)">Next: RTC Upload</button>
+                    </div>
+                </div>
+                
+                <!-- Step 3: RTC Upload with OCR -->
+                <div class="form-step" id="formStep3">
+                    <h2 class="form-title">RTC Document Upload</h2>
+                    
+                    <div class="form-group">
+                        <label for="rtc_document">Upload RTC Document *</label>
+                        <div class="file-upload" id="rtcUploadArea">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Click to upload or drag and drop</p>
+                            <p>PDF, JPG, PNG (Max 5MB)</p>
+                            <input type="file" id="rtc_document" name="rtc_document" class="file-input" accept=".pdf,.jpg,.jpeg,.png" required>
+                        </div>
+                        <div class="file-name" id="fileName"></div>
+                        
+                        <div class="processing-indicator" id="processingIndicator">
+                            <i class="fas fa-spinner fa-spin"></i> Processing document...
+                        </div>
+                        
+                        
+                        
+                        <div class="file-requirements">
+                            Please upload a clear copy of your Record of Rights, Tenancy and Crops (RTC) document
+                        </div>
+                    </div>
+                    
+                    <div class="navigation-buttons">
+                        <button type="button" class="btn btn-secondary" onclick="prevStep(3)">Previous</button>
+                        <button type="submit" class="btn" id="submitButton">Submit Application</button>
+                    </div>
+                </div>
+            </form>
+            
+            <div class="login-link">
+                Already have an account? <a href="{{ url_for('farmer_login') }}">Login here</a>
+            </div>
+        </div>
+    </div>
+<script>
+  
+    // Toggle password visibility
+    const togglePassword = document.querySelector('#togglePassword');
+    const toggleConfirmPassword = document.querySelector('#toggleConfirmPassword');
+    const password = document.querySelector('#password');
+    const confirmPassword = document.querySelector('#confirm_password');
+    const passwordMatch = document.querySelector('#passwordMatch');
+    const passwordMismatch = document.querySelector('#passwordMismatch');
+    const passwordStrength = document.querySelector('#passwordStrength');
+    const submitButton = document.querySelector('#submitButton');
+    const form = document.querySelector('#farmerForm');
+    const rtcUploadArea = document.querySelector('#rtcUploadArea');
+    const rtcDocument = document.querySelector('#rtc_document');
+    const fileName = document.querySelector('#fileName');
+    
+    // Phone validation elements - ADDED
+    const phoneInput = document.getElementById('phone');
+    const phoneValidation = document.getElementById('phoneValidation');
+    
+    // Step navigation functions
+    function nextStep(currentStep) {
+        // Validate current step before proceeding
+        if (currentStep === 1) {
+            if (!validateStep1()) {
+                return;
+            }
+        } else if (currentStep === 2) {
+            if (!validateStep2()) {
+                return;
+            }
+        }
+        
+        // Hide current step
+        document.getElementById(`formStep${currentStep}`).classList.remove('active');
+        document.getElementById(`step${currentStep}`).classList.remove('active');
+        
+        // Show next step
+        document.getElementById(`formStep${currentStep + 1}`).classList.add('active');
+        document.getElementById(`step${currentStep + 1}`).classList.add('active');
+        
+        // Mark current step as completed
+        document.getElementById(`step${currentStep}`).classList.add('completed');
+    }
+    
+ // ============================================
+// LANGUAGE MANAGEMENT SYSTEM
+// ============================================
+
+// 1. Function to save language preference
+function saveLanguagePreference(lang) {
+    localStorage.setItem('selectedLanguage', lang);
+    document.cookie = `user_language=${lang}; path=/; max-age=31536000`;
+    sessionStorage.setItem('selectedLanguage', lang);
+}
+
+// 2. Function to apply language translation
+function applyLanguage(lang) {
+    if (lang === 'kn') {
+        // Kannada translation
+        window.location.hash = '#googtrans(kn|en)';
+        
+        setTimeout(function() {
+            if (window.google && google.translate && google.translate.TranslateElement) {
+                try {
+                    var select = document.querySelector('.goog-te-combo');
+                    if (select) {
+                        select.value = 'kn';
+                        select.dispatchEvent(new Event('change'));
+                    }
+                } catch(e) {
+                    console.log('Translation applied');
+                }
+            }
+        }, 500);
+    } else {
+        // English (default)
+        window.location.hash = '#googtrans(en)';
+        
+        setTimeout(function() {
+            if (window.google && google.translate && google.translate.TranslateElement) {
+                try {
+                    var select = document.querySelector('.goog-te-combo');
+                    if (select) {
+                        select.value = 'en';
+                        select.dispatchEvent(new Event('change'));
+                    }
+                } catch(e) {
+                    console.log('English applied');
+                }
+            }
+        }, 500);
+    }
+}
+
+// 3. Main language switching function
+function setLanguage(lang) {
+    // Update button UI
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Save the preference
+    saveLanguagePreference(lang);
+    
+    // Apply immediately
+    applyLanguage(lang);
+}
+
+// 4. Initialize Google Translate
+function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'en,kn',
+        layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL,
+        autoDisplay: false,
+        disableAutoTranslation: false
+    }, 'google_translate_element');
+    
+    // Hide the Google Translate widget immediately
+    setTimeout(function() {
+        var elements = document.querySelectorAll('.goog-te-banner, .skiptranslate, .goog-te-gadget');
+        elements.forEach(function(el) {
+            el.style.display = 'none';
+            el.style.visibility = 'hidden';
+            el.style.height = '0';
+            el.style.overflow = 'hidden';
+        });
+        
+        document.body.style.top = '0';
+    }, 100);
+}
+
+// 5. Load Google Translate script
+function loadGoogleTranslate() {
+    if (window.google && google.translate) {
+        googleTranslateElementInit();
+        return;
+    }
+    
+    var script = document.createElement('script');
+    script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+    script.type = 'text/javascript';
+    document.head.appendChild(script);
+}
+
+// 6. On page load - Apply saved language
+document.addEventListener('DOMContentLoaded', function() {
+    // Load Google Translate
+    loadGoogleTranslate();
+    
+    // Check for saved language preference
+    const savedLang = localStorage.getItem('selectedLanguage') || 'en';
+    
+    // Set active button
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if ((savedLang === 'en' && btn.classList.contains('english')) || 
+            (savedLang === 'kn' && btn.classList.contains('kannada'))) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Apply saved language after a short delay
+    setTimeout(function() {
+        applyLanguage(savedLang);
+    }, 1000);
+});
+
+    
+    function prevStep(currentStep) {
+        // Hide current step
+        document.getElementById(`formStep${currentStep}`).classList.remove('active');
+        document.getElementById(`step${currentStep}`).classList.remove('active');
+        
+        // Show previous step
+        document.getElementById(`formStep${currentStep - 1}`).classList.add('active');
+        document.getElementById(`step${currentStep - 1}`).classList.add('active');
+    }
+    
+    function validateStep1() {
+        // Basic validation for step 1
+        const requiredFields = ['full_name', 'last_name', 'phone', 'password', 'confirm_password'];
+        let isValid = true;
+        
+        for (const field of requiredFields) {
+            const input = document.getElementById(field);
+            if (!input.value.trim()) {
+                input.style.borderColor = '#e74c3c';
+                isValid = false;
+            } else {
+                input.style.borderColor = '#ddd';
+            }
+        }
+        
+        // Validate phone number has exactly 10 digits - ADDED
+        const phoneValue = phoneInput.value.replace(/\D/g, '');
+        if (phoneValue.length !== 10) {
+            phoneInput.style.borderColor = '#e74c3c';
+            phoneValidation.style.display = 'block';
+            phoneValidation.style.color = '#e74c3c';
+            isValid = false;
+        } else {
+            phoneValidation.style.display = 'none';
+        }
+        
+        // Validate email format if provided - CHANGED TO @gmail.com ONLY
+        const emailInput = document.getElementById('email');
+        if (emailInput.value.trim()) {
+            // Check if email ends with @gmail.com
+            if (!emailInput.value.toLowerCase().endsWith('@gmail.com')) {
+                emailInput.style.borderColor = '#e74c3c';
+                isValid = false;
+                // Show validation message
+                showEmailValidationMessage('Only @gmail.com emails are allowed');
+            } else {
+                // Additional validation for proper email format
+                const emailPattern = /^[^\s@]+@gmail\.com$/;
+                if (!emailPattern.test(emailInput.value.toLowerCase())) {
+                    emailInput.style.borderColor = '#e74c3c';
+                    isValid = false;
+                    showEmailValidationMessage('Please enter a valid @gmail.com email');
+                } else {
+                    hideEmailValidationMessage();
+                }
+            }
+        } else {
+            hideEmailValidationMessage();
+        }
+        
+        // Validate password match
+        if (!validatePassword()) {
+            isValid = false;
+        }
+        
+        return isValid;
+    }
+    
+    // Helper function to show email validation message
+    function showEmailValidationMessage(message) {
+        let validationDiv = document.getElementById('emailValidation');
+        if (!validationDiv) {
+            validationDiv = document.createElement('div');
+            validationDiv.id = 'emailValidation';
+            validationDiv.className = 'email-validation';
+            validationDiv.style.color = '#e74c3c';
+            validationDiv.style.fontSize = '0.9rem';
+            validationDiv.style.marginTop = '5px';
+            document.getElementById('email').parentNode.appendChild(validationDiv);
+        }
+        validationDiv.textContent = message;
+        validationDiv.style.display = 'block';
+    }
+    
+    // Helper function to hide email validation message
+    function hideEmailValidationMessage() {
+        const validationDiv = document.getElementById('emailValidation');
+        if (validationDiv) {
+            validationDiv.style.display = 'none';
+        }
+    }
+    
+    // Real-time email validation - ADDED
+    const emailInput = document.getElementById('email');
+    emailInput.addEventListener('input', function() {
+        const emailValue = this.value.trim();
+        
+        if (emailValue === '') {
+            this.style.borderColor = '#ddd';
+            hideEmailValidationMessage();
+            return;
+        }
+        
+        // Check if email ends with @gmail.com
+        if (!emailValue.toLowerCase().endsWith('@gmail.com')) {
+            this.style.borderColor = '#e74c3c';
+            showEmailValidationMessage('Only @gmail.com emails are allowed');
+        } else {
+            // Additional validation for proper email format
+            const emailPattern = /^[^\s@]+@gmail\.com$/;
+            if (!emailPattern.test(emailValue.toLowerCase())) {
+                this.style.borderColor = '#e74c3c';
+                showEmailValidationMessage('Please enter a valid @gmail.com email');
+            } else {
+                this.style.borderColor = '#27ae60';
+                hideEmailValidationMessage();
+            }
+        }
+    });
+    
+    function validateStep2() {
+        // Basic validation for step 2
+        const requiredFields = ['farm_location'];
+        let isValid = true;
+        
+        for (const field of requiredFields) {
+            const input = document.getElementById(field);
+            if (!input.value.trim()) {
+                input.style.borderColor = '#e74c3c';
+                isValid = false;
+            } else {
+                input.style.borderColor = '#ddd';
+            }
+        }
+        
+        // Validate at least one crop type is selected
+        const cropCheckboxes = document.querySelectorAll('input[name="crop_types"]:checked');
+        if (cropCheckboxes.length === 0) {
+            alert('Please select at least one crop type');
+            isValid = false;
+        }
+        
+        return isValid;
+    }
+    
+    // Phone number validation - ADDED
+    phoneInput.addEventListener('input', function() {
+        const phoneValue = this.value.replace(/\D/g, ''); // Remove non-digits
+        
+        // Allow only 10 digits
+        if (phoneValue.length > 10) {
+            this.value = phoneValue.substring(0, 10);
+        } else {
+            this.value = phoneValue;
+        }
+        
+        // Show validation message
+        if (phoneValue.length > 0 && phoneValue.length !== 10) {
+            phoneValidation.style.display = 'block';
+            phoneValidation.style.color = '#e74c3c';
+            this.style.borderColor = '#e74c3c';
+        } else if (phoneValue.length === 10) {
+            phoneValidation.style.display = 'none';
+            this.style.borderColor = '#27ae60';
+        } else {
+            phoneValidation.style.display = 'none';
+            this.style.borderColor = '#ddd';
+        }
+    });
+    
+    togglePassword.addEventListener('click', function() {
+        // Toggle the type attribute
+        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+        password.setAttribute('type', type);
+        
+        // Toggle the eye icon
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
+    });
+    
+    toggleConfirmPassword.addEventListener('click', function() {
+        // Toggle the type attribute
+        const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+        confirmPassword.setAttribute('type', type);
+        
+        // Toggle the eye icon
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
+    });
+    
+    // Check password strength
+    function checkPasswordStrength(password) {
+        let strength = 0;
+        let messages = [];
+        
+        if (password.length < 8) {
+            messages.push("At least 8 characters");
+        } else {
+            strength++;
+        }
+        
+        if (!password.match(/[a-z]+/)) {
+            messages.push("Lowercase letter");
+        } else {
+            strength++;
+        }
+        
+        if (!password.match(/[A-Z]+/)) {
+            messages.push("Uppercase letter");
+        } else {
+            strength++;
+        }
+        
+        if (!password.match(/[0-9]+/)) {
+            messages.push("Number");
+        } else {
+            strength++;
+        }
+        
+        if (!password.match(/[!@#$%^&*]+/)) {
+            messages.push("Special character");
+        } else {
+            strength++;
+        }
+        
+        return { strength, messages };
+    }
+    
+    // Validate password matching in real-time
+    function validatePassword() {
+        if (password.value && confirmPassword.value) {
+            if (password.value === confirmPassword.value) {
+                passwordMatch.style.display = 'block';
+                passwordMismatch.style.display = 'none';
+                return true;
+            } else {
+                passwordMatch.style.display = 'none';
+                passwordMismatch.style.display = 'block';
+                return false;
+            }
+        }
+        return false;
+    }
+    
+    // Update password strength indicator
+    password.addEventListener('input', function() {
+        const result = checkPasswordStrength(password.value);
+        
+        if (password.value === '') {
+            passwordStrength.textContent = '';
+            passwordStrength.className = 'password-strength';
+            return;
+        }
+        
+        if (result.strength < 3) {
+            passwordStrength.textContent = 'Weak: ' + result.messages.join(', ');
+            passwordStrength.style.color = '#e74c3c';
+        } else if (result.strength < 5) {
+            passwordStrength.textContent = 'Medium: ' + result.messages.join(', ');
+            passwordStrength.style.color = '#f39c12';
+        } else {
+            passwordStrength.textContent = 'Strong password!';
+            passwordStrength.style.color = '#27ae60';
+        }
+    });
+    
+    // Check passwords on input
+    confirmPassword.addEventListener('input', validatePassword);
+    password.addEventListener('input', validatePassword);
+    
+    // File upload handling - REMOVED OCR
+    rtcUploadArea.addEventListener('click', function() {
+        rtcDocument.click();
+    });
+    
+    rtcUploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.style.borderColor = '#2E7D32';
+    });
+    
+    rtcUploadArea.addEventListener('dragleave', function() {
+        this.style.borderColor = '#ddd';
+    });
+    
+    rtcUploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.style.borderColor = '#ddd';
+        
+        if (e.dataTransfer.files.length) {
+            rtcDocument.files = e.dataTransfer.files;
+            handleFileSelection(e.dataTransfer.files[0]);
+        }
+    });
+    
+    rtcDocument.addEventListener('change', function() {
+        if (this.files.length) {
+            handleFileSelection(this.files[0]);
+        }
+    });
+    
+    // SIMPLIFIED - NO OCR - MODIFIED
+    function handleFileSelection(file) {
+        // Check file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('File size exceeds 5MB limit. Please choose a smaller file.');
+            rtcDocument.value = '';
+            fileName.textContent = '';
+            return;
+        }
+        
+        // Check file type
+        const fileType = file.type.toLowerCase();
+        if (!fileType.includes('pdf') && !fileType.includes('image')) {
+            alert('Please upload a PDF or image file (JPG, PNG)');
+            rtcDocument.value = '';
+            fileName.textContent = '';
+            return;
+        }
+        
+        // Display file name
+        fileName.textContent = `Selected file: ${file.name}`;
+        
+        // No OCR processing - just simple file upload
+    }
+    
+    // Form submission validation
+    form.addEventListener('submit', function(event) {
+        // Final phone validation - ADDED
+        const phoneValue = phoneInput.value.replace(/\D/g, '');
+        if (phoneValue.length !== 10) {
+            event.preventDefault();
+            alert('Phone number must be exactly 10 digits.');
+            phoneInput.focus();
+            return;
+        }
+        
+        // Final email validation if email is provided - CHANGED TO @gmail.com ONLY
+        const emailInput = document.getElementById('email');
+        if (emailInput.value.trim()) {
+            if (!emailInput.value.toLowerCase().endsWith('@gmail.com')) {
+                event.preventDefault();
+                alert('Only @gmail.com emails are allowed.');
+                emailInput.focus();
+                return;
+            }
+            
+            const emailPattern = /^[^\s@]+@gmail\.com$/;
+            if (!emailPattern.test(emailInput.value.toLowerCase())) {
+                event.preventDefault();
+                alert('Please enter a valid @gmail.com email.');
+                emailInput.focus();
+                return;
+            }
+        }
+        
+        if (!validatePassword()) {
+            event.preventDefault();
+            alert('Please make sure your passwords match.');
+            return;
+        }
+        
+        const result = checkPasswordStrength(password.value);
+        if (result.strength < 5) {
+            event.preventDefault();
+            alert('Please make sure your password meets all the strength requirements.');
+            return;
+        }
+    });
+</script>
+    <style>.goog-te-banner-frame{display:none!important;}.goog-te-gadget{font-size:0!important;}</style>
+</body>
+</html>
