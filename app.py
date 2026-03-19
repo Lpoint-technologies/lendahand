@@ -18,13 +18,18 @@ app.secret_key = 'your-secret-key-here'
 
 # ================= DATABASE CONNECTION FUNCTIONS ==================
 
+
+
 def get_vendors_db():
-    """Connect to vendors database (vendors, equipment, bookings, rent_requests, loan_purchases)"""
+    DATABASE_URL = os.getenv("DATABASE_URL")
+
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
     return psycopg2.connect(
-        host="localhost",
-        database="vendors",
-        user="postgres",
-        password="Hruthik@2004"
+        DATABASE_URL,
+        sslmode='require',
+        cursor_factory=RealDictCursor
     )
 
 # OTP storage (in-memory)
