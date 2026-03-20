@@ -1148,10 +1148,54 @@ def pay_emi():
         payment_month = emi_paid + 1
         
         # Determine which table to use for the foreign key
+                # FIXED: Determine which table to use for the foreign key - ALWAYS use loan_purchases ID
         if table_name == 'loan_purchases':
             payment_loan_id = loan_id
         else:
-            payment_loan_id = loan_id
+            # If we're in loan_history, find or create the corresponding loan_purchases record
+            cursor.execute("""
+                SELECT id FROM loan_purchases 
+                WHERE user_id = %s AND equipment_id = %s AND loan_amount = %s
+                ORDER BY id DESC LIMIT 1
+            """, (user_id, loan['equipment_id'], loan['loan_amount']))
+            
+            existing_purchase = cursor.fetchone()
+            
+            if existing_purchase:
+                payment_loan_id = existing_purchase['id']
+            else:
+                # Create a loan_purchases record from the loan_history data
+                cursor.execute("""
+                    INSERT INTO loan_purchases 
+                    (user_id, user_name, user_phone, user_email, equipment_id, equipment_name, 
+                     vendor_email, vendor_name, purchase_amount, down_payment, loan_amount, 
+                     interest_rate, loan_term_years, loan_term_months, emi_amount, 
+                     total_payable, total_interest, first_emi_date, last_emi_date, 
+                     payment_mode, status, emi_paid, next_due_date, created_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    RETURNING id
+                """, (
+                    loan['user_id'], loan['user_name'], loan['user_phone'], loan['user_email'],
+                    loan['equipment_id'], loan['equipment_name'],
+                    loan['vendor_email'], loan['vendor_name'],
+                    loan['loan_amount'], loan['down_payment'] if 'down_payment' in loan else 0, 
+                    loan['loan_amount'],
+                    loan['interest_rate'],
+                    loan['loan_term_years'] if 'loan_term_years' in loan else loan['loan_term_months'] // 12,
+                    loan['loan_term_months'],
+                    loan['emi_amount'],
+                    loan['total_payable'] if 'total_payable' in loan else loan['loan_amount'],
+                    loan['total_interest'] if 'total_interest' in loan else 0,
+                    loan['first_emi_date'] if 'first_emi_date' in loan else None,
+                    loan['last_emi_date'] if 'last_emi_date' in loan else None,
+                    loan['payment_mode'] if 'payment_mode' in loan else 'loan',
+                    'active',
+                    loan['emi_paid'],
+                    loan['next_due_date'],
+                    datetime.now()
+                ))
+                new_purchase = cursor.fetchone()
+                payment_loan_id = new_purchase['id']
         
         # Record payment in loan_payments
         cursor.execute("""
