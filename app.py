@@ -539,6 +539,7 @@ def init_vendors_db():
         ''')
 
         # NEW: Loan payments table
+                # NEW: Loan payments table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS loan_payments (
                 id SERIAL PRIMARY KEY,
@@ -554,10 +555,30 @@ def init_vendors_db():
                 transaction_id TEXT,
                 status TEXT DEFAULT 'completed',
                 payment_month INTEGER NOT NULL,
-                remarks TEXT,
-                FOREIGN KEY (loan_id) REFERENCES loan_purchases(id)
+                remarks TEXT
             )
         ''')
+        
+        # Fix foreign key constraint to ensure it references loan_purchases, not loan_history
+        cursor.execute("""
+            DO $$ 
+            BEGIN
+                -- Drop existing constraint if it exists
+                IF EXISTS (
+                    SELECT 1 FROM information_schema.table_constraints 
+                    WHERE constraint_name = 'loan_payments_loan_id_fkey' 
+                    AND table_name = 'loan_payments'
+                ) THEN
+                    ALTER TABLE loan_payments DROP CONSTRAINT loan_payments_loan_id_fkey;
+                END IF;
+            END $$;
+        """)
+        
+        cursor.execute("""
+            ALTER TABLE loan_payments 
+            ADD CONSTRAINT loan_payments_loan_id_fkey 
+            FOREIGN KEY (loan_id) REFERENCES loan_purchases(id) ON DELETE CASCADE
+        """)
         
         conn.commit()
         conn.close()
