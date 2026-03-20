@@ -1237,41 +1237,28 @@ def pay_emi():
         # Update the original table
         if table_name == 'loan_purchases':
             cursor.execute("""
-                UPDATE loan_purchases 
-                SET emi_paid = %s,
-                    emi_missed = 0,
-                    default_days = 0,
-                    last_payment_date = CURRENT_TIMESTAMP,
-                    next_due_date = %s,
-                    status = %s,
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE id = %s
-            """, (new_emi_paid, next_due_date, new_status, loan_id))
-            
-            # Also update loan_history if it exists
-            cursor.execute("""
-                UPDATE loan_history 
-                SET emi_paid = %s,
-                    emi_missed = 0,
-                    default_days = 0,
-                    last_payment_date = CURRENT_TIMESTAMP,
-                    next_due_date = %s,
-                    status = %s,
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE id = %s
-            """, (new_emi_paid, next_due_date, new_status, payment_loan_id))
+        UPDATE loan_purchases 
+        SET emi_paid = %s,
+            emi_missed = 0,
+            default_days = 0,
+            last_payment_date = CURRENT_TIMESTAMP,
+            next_due_date = %s,
+            status = %s,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = %s
+    """, (new_emi_paid, next_due_date, new_status, loan_id))
         else:
             cursor.execute("""
-                UPDATE loan_history 
-                SET emi_paid = %s,
-                    emi_missed = 0,
-                    default_days = 0,
-                    last_payment_date = CURRENT_TIMESTAMP,
-                    next_due_date = %s,
-                    status = %s,
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE id = %s
-            """, (new_emi_paid, next_due_date, new_status, loan_id))
+        UPDATE loan_history 
+        SET emi_paid = %s,
+            emi_missed = 0,
+            default_days = 0,
+            last_payment_date = CURRENT_TIMESTAMP,
+            next_due_date = %s,
+            status = %s,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = %s
+    """, (new_emi_paid, next_due_date, new_status, loan_id))
         
         conn.commit()
         conn.close()
