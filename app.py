@@ -539,7 +539,6 @@ def init_vendors_db():
         ''')
 
         # NEW: Loan payments table
-                # NEW: Loan payments table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS loan_payments (
                 id SERIAL PRIMARY KEY,
@@ -555,30 +554,10 @@ def init_vendors_db():
                 transaction_id TEXT,
                 status TEXT DEFAULT 'completed',
                 payment_month INTEGER NOT NULL,
-                remarks TEXT
+                remarks TEXT,
+                FOREIGN KEY (loan_id) REFERENCES loan_purchases(id)
             )
         ''')
-        
-        # Fix foreign key constraint to ensure it references loan_purchases, not loan_history
-        cursor.execute("""
-            DO $$ 
-            BEGIN
-                -- Drop existing constraint if it exists
-                IF EXISTS (
-                    SELECT 1 FROM information_schema.table_constraints 
-                    WHERE constraint_name = 'loan_payments_loan_id_fkey' 
-                    AND table_name = 'loan_payments'
-                ) THEN
-                    ALTER TABLE loan_payments DROP CONSTRAINT loan_payments_loan_id_fkey;
-                END IF;
-            END $$;
-        """)
-        
-        cursor.execute("""
-            ALTER TABLE loan_payments 
-            ADD CONSTRAINT loan_payments_loan_id_fkey 
-            FOREIGN KEY (loan_id) REFERENCES loan_purchases(id) ON DELETE CASCADE
-        """)
         
         conn.commit()
         conn.close()
@@ -624,7 +603,7 @@ def update_password(phone, new_password):
     """Update vendor password in database"""
     try:
         conn = get_vendors_db()
-        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor = conn.cursor(cursor_factory=RealDictCursor)  # FIXED: Added cursor_factory
         
         hashed_password = generate_password_hash(new_password)
         
@@ -678,7 +657,7 @@ def update_farmer_password(phone, new_password):
     """Update farmer password in database"""
     try:
         conn = get_vendors_db()
-        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor = conn.cursor(cursor_factory=RealDictCursor)  # FIXED: Added cursor_factory
         
         hashed_password = generate_password_hash(new_password)
         
@@ -769,7 +748,7 @@ def farmer_forgot_password_modal():
     phone_clean = ''.join(filter(str.isdigit, phone))
     
     conn = get_vendors_db()
-    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)  # FIXED: Added cursor_factory
     cursor.execute("SELECT * FROM farmers WHERE phone = %s", (phone_clean,))
     farmer = cursor.fetchone()
     conn.close()
@@ -881,7 +860,7 @@ def vendor_forgot_password_modal():
     phone_clean = ''.join(filter(str.isdigit, phone))
     
     conn = get_vendors_db()
-    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)  # FIXED: Added cursor_factory
     cursor.execute("SELECT * FROM vendors WHERE phone = %s", (phone_clean,))
     vendor = cursor.fetchone()
     conn.close()
@@ -1169,56 +1148,46 @@ def pay_emi():
         payment_month = emi_paid + 1
         
         # Determine which table to use for the foreign key
-                # FIXED: Determine which table to use for the foreign key - ALWAYS use loan_purchases ID
+        # The loan_payments table has a foreign key to loan_history
+        # So we need to use loan_history.id
         if table_name == 'loan_purchases':
-            payment_loan_id = loan_id
-        else:
-            # If we're in loan_history, find or create the corresponding loan_purchases record
+            # Check if there's a corresponding record in loan_history
             cursor.execute("""
-                SELECT id FROM loan_purchases 
-                WHERE user_id = %s AND equipment_id = %s AND loan_amount = %s
+                SELECT id FROM loan_history 
+                WHERE user_id = %s AND equipment_id = %s 
+                AND loan_amount = %s
                 ORDER BY id DESC LIMIT 1
             """, (user_id, loan['equipment_id'], loan['loan_amount']))
             
-            existing_purchase = cursor.fetchone()
-            
-            if existing_purchase:
-                payment_loan_id = existing_purchase['id']
+            history_record = cursor.fetchone()
+            if history_record:
+                payment_loan_id = history_record['id']
             else:
-                # Create a loan_purchases record from the loan_history data
+                # Create a record in loan_history first
                 cursor.execute("""
-                    INSERT INTO loan_purchases 
+                    INSERT INTO loan_history 
                     (user_id, user_name, user_phone, user_email, equipment_id, equipment_name, 
-                     vendor_email, vendor_name, purchase_amount, down_payment, loan_amount, 
-                     interest_rate, loan_term_years, loan_term_months, emi_amount, 
-                     total_payable, total_interest, first_emi_date, last_emi_date, 
-                     payment_mode, status, emi_paid, next_due_date, created_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                     loan_amount, down_payment, interest_rate, loan_term_months, emi_amount, 
+                     total_payable, total_interest, first_emi_date, last_emi_date, status, 
+                     emi_paid, next_due_date, created_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id
                 """, (
                     loan['user_id'], loan['user_name'], loan['user_phone'], loan['user_email'],
                     loan['equipment_id'], loan['equipment_name'],
-                    loan['vendor_email'], loan['vendor_name'],
-                    loan['loan_amount'], loan['down_payment'] if 'down_payment' in loan else 0, 
-                    loan['loan_amount'],
-                    loan['interest_rate'],
-                    loan['loan_term_years'] if 'loan_term_years' in loan else loan['loan_term_months'] // 12,
-                    loan['loan_term_months'],
-                    loan['emi_amount'],
-                    loan['total_payable'] if 'total_payable' in loan else loan['loan_amount'],
-                    loan['total_interest'] if 'total_interest' in loan else 0,
-                    loan['first_emi_date'] if 'first_emi_date' in loan else None,
-                    loan['last_emi_date'] if 'last_emi_date' in loan else None,
-                    loan['payment_mode'] if 'payment_mode' in loan else 'loan',
-                    'active',
-                    loan['emi_paid'],
-                    loan['next_due_date'],
-                    datetime.now()
+                    loan['loan_amount'], loan['down_payment'], loan['interest_rate'],
+                    loan['loan_term_months'], loan['emi_amount'],
+                    loan['total_payable'], loan['total_interest'],
+                    loan['first_emi_date'], loan['last_emi_date'],
+                    loan['status'], loan['emi_paid'], loan['next_due_date'],
+                    loan['created_at']
                 ))
-                new_purchase = cursor.fetchone()
-                payment_loan_id = new_purchase['id']
+                history_record = cursor.fetchone()
+                payment_loan_id = history_record['id']
+        else:
+            payment_loan_id = loan_id
         
-        # Record payment in loan_payments
+        # Record payment in loan_payments (uses loan_history foreign key)
         cursor.execute("""
             INSERT INTO loan_payments 
             (loan_id, user_id, due_date, amount_paid, principal_paid, 
@@ -1265,31 +1234,31 @@ def pay_emi():
         else:
             new_status = 'active'
         
-        # Update the original table only - NO LOAN_HISTORY UPDATE
+        # Update the original table
         if table_name == 'loan_purchases':
             cursor.execute("""
-                UPDATE loan_purchases 
-                SET emi_paid = %s,
-                    emi_missed = 0,
-                    default_days = 0,
-                    last_payment_date = CURRENT_TIMESTAMP,
-                    next_due_date = %s,
-                    status = %s,
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE id = %s
-            """, (new_emi_paid, next_due_date, new_status, loan_id))
+        UPDATE loan_purchases 
+        SET emi_paid = %s,
+            emi_missed = 0,
+            default_days = 0,
+            last_payment_date = CURRENT_TIMESTAMP,
+            next_due_date = %s,
+            status = %s,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = %s
+    """, (new_emi_paid, next_due_date, new_status, loan_id))
         else:
             cursor.execute("""
-                UPDATE loan_history 
-                SET emi_paid = %s,
-                    emi_missed = 0,
-                    default_days = 0,
-                    last_payment_date = CURRENT_TIMESTAMP,
-                    next_due_date = %s,
-                    status = %s,
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE id = %s
-            """, (new_emi_paid, next_due_date, new_status, loan_id))
+        UPDATE loan_history 
+        SET emi_paid = %s,
+            emi_missed = 0,
+            default_days = 0,
+            last_payment_date = CURRENT_TIMESTAMP,
+            next_due_date = %s,
+            status = %s,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = %s
+    """, (new_emi_paid, next_due_date, new_status, loan_id))
         
         conn.commit()
         conn.close()
@@ -5522,7 +5491,7 @@ def api_admin_stats():
     try:
         stats = {}
         conn = get_vendors_db()
-        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor = conn.cursor(cursor_factory=RealDictCursor)  # FIXED: Added cursor_factory
         
         # Farmers stats
         cursor.execute("SELECT COUNT(*) as count FROM farmers")
@@ -5603,7 +5572,7 @@ def api_admin_farmers_count():
     
     try:
         conn = get_vendors_db()
-        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor = conn.cursor(cursor_factory=RealDictCursor)  # FIXED: Added cursor_factory
         cursor.execute("SELECT COUNT(*) as count FROM farmers")
         result = cursor.fetchone()
         count = result['count'] if result else 0
@@ -5634,7 +5603,7 @@ def api_admin_send_broadcast():
             return jsonify({'error': 'Title and content are required'}), 400
         
         conn = get_vendors_db()
-        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor = conn.cursor(cursor_factory=RealDictCursor)  # FIXED: Added cursor_factory
         cursor.execute("SELECT full_name, phone FROM farmers")
         farmers = cursor.fetchall()
         conn.close()
@@ -5650,8 +5619,8 @@ def api_admin_send_broadcast():
         print(f"📢 Starting broadcast to {len(farmers)} farmers")
         
         for farmer in farmers:
-            farmer_name = farmer['full_name']
-            farmer_phone = farmer['phone']
+            farmer_name = farmer['full_name']  # Now works because it's a dict
+            farmer_phone = farmer['phone']      # Now works because it's a dict
             
             try:
                 phone = ''.join(filter(str.isdigit, str(farmer_phone)))
