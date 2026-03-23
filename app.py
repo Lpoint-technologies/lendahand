@@ -566,7 +566,6 @@ def init_vendors_db():
                 FOREIGN KEY (loan_id) REFERENCES loan_purchases(id)
             )
         ''')
-        # Add after your loan_payments table creation
         cursor.execute('''
     CREATE TABLE IF NOT EXISTS razorpay_payments (
         id SERIAL PRIMARY KEY,
@@ -582,22 +581,6 @@ def init_vendors_db():
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (loan_id) REFERENCES loan_purchases(id)
-    )
-''')
-
-        cursor.execute('''
-    CREATE TABLE IF NOT EXISTS equipment_payment_sessions (
-        id SERIAL PRIMARY KEY,
-        order_id VARCHAR(100) UNIQUE NOT NULL,
-        razorpay_order_id VARCHAR(100) NOT NULL,
-        equipment_id INTEGER NOT NULL,
-        user_id INTEGER NOT NULL,
-        amount DECIMAL(10,2) NOT NULL,
-        notes TEXT,
-        status VARCHAR(50) DEFAULT 'created',
-        payment_id VARCHAR(100),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (equipment_id) REFERENCES equipment(id)
     )
 ''')
         conn.commit()
