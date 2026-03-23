@@ -566,34 +566,50 @@ def init_vendors_db():
                 FOREIGN KEY (loan_id) REFERENCES loan_purchases(id)
             )
         ''')
+        
+        # ================= RAZORPAY TABLES =================
+        # Razorpay EMI payments table
         cursor.execute('''
-    CREATE TABLE IF NOT EXISTS razorpay_payments (
-        id SERIAL PRIMARY KEY,
-        order_id VARCHAR(100) UNIQUE NOT NULL,
-        razorpay_order_id VARCHAR(100) NOT NULL,
-        loan_id INTEGER NOT NULL,
-        user_id INTEGER NOT NULL,
-        amount DECIMAL(10,2) NOT NULL,
-        emi_number INTEGER NOT NULL,
-        payment_type VARCHAR(50),
-        status VARCHAR(50) DEFAULT 'created',
-        payment_id VARCHAR(100),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (loan_id) REFERENCES loan_purchases(id)
-    )
-''')
+            CREATE TABLE IF NOT EXISTS razorpay_payments (
+                id SERIAL PRIMARY KEY,
+                order_id VARCHAR(100) UNIQUE NOT NULL,
+                razorpay_order_id VARCHAR(100) NOT NULL,
+                loan_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                amount DECIMAL(10,2) NOT NULL,
+                emi_number INTEGER NOT NULL,
+                payment_type VARCHAR(50),
+                status VARCHAR(50) DEFAULT 'created',
+                payment_id VARCHAR(100),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (loan_id) REFERENCES loan_purchases(id)
+            )
+        ''')
+        
+        # Razorpay Equipment Purchase payments table (THIS IS THE MISSING TABLE)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS equipment_payment_sessions (
+                id SERIAL PRIMARY KEY,
+                order_id VARCHAR(100) UNIQUE NOT NULL,
+                razorpay_order_id VARCHAR(100) NOT NULL,
+                equipment_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                amount DECIMAL(10,2) NOT NULL,
+                notes TEXT,
+                status VARCHAR(50) DEFAULT 'created',
+                payment_id VARCHAR(100),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (equipment_id) REFERENCES equipment(id)
+            )
+        ''')
+        
         conn.commit()
         conn.close()
-        print("✅ Vendors database initialized with loan tables")
+        print("✅ Vendors database initialized with loan tables and Razorpay tables")
         
     except Exception as e:
         print(f"❌ Error initializing vendors database: {str(e)}")
-
-def init_databases():
-    init_vendors_db()  # This now creates farmers table too
-    print("✅ Vendors database initialized successfully")
-
 # ================= OTP FUNCTIONS ==================
 
 def generate_otp():
