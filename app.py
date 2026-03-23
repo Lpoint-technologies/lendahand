@@ -42,7 +42,7 @@ farmer_otp_storage = {}
 # ================= SMS Sending Function ==================
 def send_sms(phone, message):
     """Send SMS using Fast2SMS API"""
-    api_key = "CELR3Zg21VMUIiWy4rzqnS6fYBaxNdsHlOhpJ7DQ0GFKAbTPtkNKUbiwAG0YaTfsIBxmyV4nlqJugeCR"
+    api_key = "QFK4dK4jeuaOESXx2MC1ldbZJw3SICQfkE8h9uX1kiEmUvZuPSIAG246hTqu"
     url = "https://www.fast2sms.com/dev/bulkV2"
 
     # Clean phone number - remove any non-digit characters
