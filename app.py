@@ -4851,7 +4851,7 @@ def api_admin_loan_detail(loan_id):
         conn = get_vendors_db()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         
-        # Get loan details from loan_purchases (without joining farmers)
+        # Get loan details from loan_purchases
         cursor.execute("""
             SELECT 
                 lp.*,
@@ -4869,12 +4869,15 @@ def api_admin_loan_detail(loan_id):
             conn.close()
             return jsonify({'error': 'Loan not found'}), 404
         
-        # Get payment history
+        # Get payment history (these are linked through loan_history)
         cursor.execute("""
             SELECT * FROM loan_payments 
-            WHERE loan_id = %s 
+            WHERE loan_id IN (
+                SELECT id FROM loan_history 
+                WHERE user_id = %s AND equipment_id = %s
+            )
             ORDER BY payment_date DESC
-        """, (loan_id,))
+        """, (loan['user_id'], loan['equipment_id']))
         
         payments = cursor.fetchall()
         
@@ -4889,8 +4892,12 @@ def api_admin_loan_detail(loan_id):
         
         conn.close()
         
+        # Convert loan to dict for JSON serialization
+        loan_dict = dict(loan)
+        loan_dict['days_overdue'] = days_overdue
+        
         return jsonify({
-            'loan': loan,
+            'loan': loan_dict,
             'payments': payments,
             'days_overdue': days_overdue
         })
