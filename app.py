@@ -1430,12 +1430,11 @@ def razorpay_callback():
         cursor.execute("UPDATE razorpay_payments SET status = 'completed', payment_id = %s WHERE id = %s", 
                       (razorpay_payment_id, payment_session['id']))
         
-        # Process the payment using your existing logic
+        # Process the payment
         loan_id = payment_session['loan_id']
         user_id = payment_session['user_id']
-        amount = payment_session['amount']
+        amount = float(payment_session['amount'])  # FIX: Convert to float
         
-        # Call your existing EMI processing logic
         conn2 = get_vendors_db()
         cursor2 = conn2.cursor(cursor_factory=RealDictCursor)
         
@@ -1476,14 +1475,20 @@ def razorpay_callback():
                      emi_paid, next_due_date, created_at)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id
-                """, (loan['user_id'], loan['user_name'], loan['user_phone'], loan['user_email'],
-                      loan['equipment_id'], loan['equipment_name'],
-                      loan['loan_amount'], loan['down_payment'], loan['interest_rate'],
-                      loan['loan_term_months'], loan['emi_amount'],
-                      loan['total_payable'], loan['total_interest'],
-                      loan['first_emi_date'], loan['last_emi_date'],
-                      new_status, new_emi_paid, next_due_date, loan['created_at']))
+                """, (
+                    loan['user_id'], loan['user_name'], loan['user_phone'], loan['user_email'],
+                    loan['equipment_id'], loan['equipment_name'],
+                    loan['loan_amount'], loan['down_payment'], loan['interest_rate'],
+                    loan['loan_term_months'], loan['emi_amount'],
+                    loan['total_payable'], loan['total_interest'],
+                    loan['first_emi_date'], loan['last_emi_date'],
+                    new_status, new_emi_paid, next_due_date, loan['created_at']))
                 history = cursor2.fetchone()
+            
+            # FIX: Convert Decimal to float for calculations
+            emi_amount_float = float(loan['emi_amount'])
+            principal_paid = emi_amount_float * 0.7
+            interest_paid = emi_amount_float * 0.3
             
             # Record payment
             cursor2.execute("""
@@ -1491,9 +1496,11 @@ def razorpay_callback():
                 (loan_id, user_id, due_date, amount_paid, principal_paid, 
                  interest_paid, payment_method, transaction_id, payment_month, remarks)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (history['id'], user_id, loan['next_due_date'], amount,
-                  amount * 0.7, amount * 0.3, 'razorpay', razorpay_payment_id,
-                  new_emi_paid, f'Paid via Razorpay - Payment ID: {razorpay_payment_id}'))
+            """, (
+                history['id'], user_id, loan['next_due_date'], amount,
+                principal_paid, interest_paid, 'razorpay', razorpay_payment_id,
+                new_emi_paid, f'Paid via Razorpay - Payment ID: {razorpay_payment_id}'
+            ))
             
             # Update loan_history
             cursor2.execute("""
@@ -1524,6 +1531,8 @@ def razorpay_callback():
         
     except Exception as e:
         print(f"❌ Error processing payment: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 @app.route('/api/equipment/create-razorpay-order', methods=['POST'])
 def create_equipment_razorpay_order():
@@ -1642,6 +1651,10 @@ def equipment_razorpay_callback():
             start_date = datetime.now().strftime('%Y-%m-%d')
             end_date = datetime.now().strftime('%Y-%m-%d')
             
+            # FIX: Convert Decimal to int/float
+            stock_quantity = int(equipment['stock_quantity'] or 0)
+            min_stock_threshold = int(equipment['min_stock_threshold'] or 5)
+            
             cursor.execute("""
                 INSERT INTO bookings 
                 (user_id, user_name, user_email, user_phone, equipment_id, equipment_name, 
@@ -1649,24 +1662,40 @@ def equipment_razorpay_callback():
                  status, notes, created_date)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
             """, (
-                payment_session['user_id'], session.get('user_name', 'User'), session.get('user_email', ''),
-                session.get('user_phone', ''), equipment_id, equipment['name'],
-                equipment['vendor_email'], equipment['vendor_name'], start_date, end_date,
-                1, amount, 'confirmed', f'Paid via Razorpay - Payment ID: {razorpay_payment_id}\n{notes}'
+                payment_session['user_id'], 
+                session.get('user_name', 'User'), 
+                session.get('user_email', ''),
+                session.get('user_phone', ''), 
+                equipment_id, 
+                equipment['name'],
+                equipment['vendor_email'], 
+                equipment['vendor_name'], 
+                start_date, 
+                end_date,
+                1, 
+                float(amount),  # Convert to float
+                'confirmed', 
+                f'Paid via Razorpay - Payment ID: {razorpay_payment_id}\n{notes}'
             ))
             
-            # Update stock
-            new_stock = int(equipment['stock_quantity'] or 0) - 1
+            # Update stock - FIX: Convert to int properly
+            new_stock = stock_quantity - 1
+            if new_stock < 0:
+                new_stock = 0
+            
+            # Determine new status
+            new_status = 'available'
+            if new_stock <= 0:
+                new_status = 'unavailable'
+            elif new_stock <= min_stock_threshold:
+                new_status = 'low_stock'
+            
             cursor.execute("""
                 UPDATE equipment 
                 SET stock_quantity = %s,
-                    status = CASE 
-                        WHEN %s <= 0 THEN 'unavailable' 
-                        WHEN %s <= %s THEN 'low_stock'  
-                        ELSE 'available' 
-                    END
+                    status = %s
                 WHERE id = %s
-            """, (new_stock, new_stock, new_stock, equipment['min_stock_threshold'] or 5, equipment_id))
+            """, (new_stock, new_status, equipment_id))
         
         conn.commit()
         conn.close()
@@ -1677,6 +1706,8 @@ def equipment_razorpay_callback():
         
     except Exception as e:
         print(f"❌ Error processing equipment payment: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 @app.route('/api/user/loan/<int:loan_id>/schedule')
 def get_loan_schedule(loan_id):
