@@ -1632,6 +1632,7 @@ def equipment_razorpay_callback():
         conn = get_vendors_db()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         
+        # Get payment session
         cursor.execute("SELECT * FROM equipment_payment_sessions WHERE razorpay_order_id = %s AND status = 'created'", (razorpay_order_id,))
         payment_session = cursor.fetchone()
         
@@ -1639,70 +1640,134 @@ def equipment_razorpay_callback():
             conn.close()
             return jsonify({'error': 'Payment session not found'}), 404
         
+        # Update payment status
         cursor.execute("UPDATE equipment_payment_sessions SET status = 'completed', payment_id = %s WHERE id = %s", 
                       (razorpay_payment_id, payment_session['id']))
         
-        # Get equipment details
-        cursor.execute("SELECT * FROM equipment WHERE id = %s", (equipment_id,))
+        # FIX: Get equipment details with vendor information using proper JOIN
+        cursor.execute("""
+            SELECT 
+                e.id,
+                e.name,
+                e.description,
+                e.category,
+                e.purchase_price,
+                e.rental_price,
+                e.location,
+                e.image_url,
+                e.stock_quantity,
+                e.min_stock_threshold,
+                e.status,
+                e.vendor_email,
+                v.contact_name as vendor_name,
+                v.email as vendor_email,
+                v.business_name,
+                v.phone as vendor_phone
+            FROM equipment e
+            INNER JOIN vendors v ON e.vendor_email = v.email
+            WHERE e.id = %s
+        """, (equipment_id,))
+        
         equipment = cursor.fetchone()
         
-        if equipment:
-            # Create booking record
-            start_date = datetime.now().strftime('%Y-%m-%d')
-            end_date = datetime.now().strftime('%Y-%m-%d')
-            
-            # FIX: Convert Decimal to int/float
-            stock_quantity = int(equipment['stock_quantity'] or 0)
-            min_stock_threshold = int(equipment['min_stock_threshold'] or 5)
-            
-            cursor.execute("""
-                INSERT INTO bookings 
-                (user_id, user_name, user_email, user_phone, equipment_id, equipment_name, 
-                 vendor_email, vendor_name, start_date, end_date, duration, total_amount, 
-                 status, notes, created_date)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
-            """, (
-                payment_session['user_id'], 
-                session.get('user_name', 'User'), 
-                session.get('user_email', ''),
-                session.get('user_phone', ''), 
-                equipment_id, 
-                equipment['name'],
-                equipment['vendor_email'], 
-                equipment['vendor_name'], 
-                start_date, 
-                end_date,
-                1, 
-                float(amount),  # Convert to float
-                'confirmed', 
-                f'Paid via Razorpay - Payment ID: {razorpay_payment_id}\n{notes}'
-            ))
-            
-            # Update stock - FIX: Convert to int properly
-            new_stock = stock_quantity - 1
-            if new_stock < 0:
-                new_stock = 0
-            
-            # Determine new status
-            new_status = 'available'
-            if new_stock <= 0:
-                new_status = 'unavailable'
-            elif new_stock <= min_stock_threshold:
-                new_status = 'low_stock'
-            
-            cursor.execute("""
-                UPDATE equipment 
-                SET stock_quantity = %s,
-                    status = %s
-                WHERE id = %s
-            """, (new_stock, new_status, equipment_id))
+        if not equipment:
+            conn.close()
+            return jsonify({'error': 'Equipment not found'}), 404
+        
+        # Get user details
+        user_id = payment_session['user_id']
+        cursor.execute("SELECT id, full_name, email, phone FROM farmers WHERE id = %s", (user_id,))
+        user = cursor.fetchone()
+        
+        if not user:
+            # Fallback to session data
+            user = {
+                'id': user_id,
+                'full_name': session.get('user_name', 'User'),
+                'email': session.get('user_email', ''),
+                'phone': session.get('user_phone', '')
+            }
+        
+        # Create booking record
+        start_date = datetime.now().strftime('%Y-%m-%d')
+        end_date = datetime.now().strftime('%Y-%m-%d')
+        duration = 1
+        
+        # Convert values properly
+        stock_quantity = int(equipment['stock_quantity'] or 0)
+        min_stock_threshold = int(equipment['min_stock_threshold'] or 5)
+        amount_float = float(amount)
+        
+        print(f"📝 Creating booking for user: {user['full_name']}")
+        print(f"📦 Equipment: {equipment['name']}")
+        print(f"🏪 Vendor: {equipment['vendor_name']} ({equipment['vendor_email']})")
+        
+        # Insert booking
+        cursor.execute("""
+            INSERT INTO bookings 
+            (user_id, user_name, user_email, user_phone, 
+             equipment_id, equipment_name, vendor_email, vendor_name,
+             start_date, end_date, duration, total_amount, status, notes, created_date)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+            RETURNING id
+        """, (
+            user['id'],
+            user['full_name'],
+            user['email'],
+            user['phone'],
+            equipment_id,
+            equipment['name'],
+            equipment['vendor_email'],
+            equipment['vendor_name'],  # This now exists because we joined vendors table
+            start_date,
+            end_date,
+            duration,
+            amount_float,
+            'confirmed',
+            f'Paid via Razorpay - Payment ID: {razorpay_payment_id}\n{notes}'
+        ))
+        
+        booking_result = cursor.fetchone()
+        booking_id = booking_result['id'] if booking_result else None
+        
+        print(f"✅ Booking created successfully with ID: {booking_id}")
+        
+        # Update stock
+        new_stock = stock_quantity - 1
+        if new_stock < 0:
+            new_stock = 0
+        
+        # Determine new status
+        new_status = 'available'
+        if new_stock <= 0:
+            new_status = 'unavailable'
+        elif new_stock <= min_stock_threshold:
+            new_status = 'low_stock'
+        
+        cursor.execute("""
+            UPDATE equipment 
+            SET stock_quantity = %s,
+                status = %s
+            WHERE id = %s
+        """, (new_stock, new_status, equipment_id))
+        
+        print(f"📦 Stock updated: {stock_quantity} → {new_stock}, Status: {new_status}")
         
         conn.commit()
+        
+        # Send SMS confirmation
+        if user['phone']:
+            sms_message = f"✅ Your purchase of {equipment['name']} has been confirmed! Booking ID: #{booking_id}. Thank you for using Lend A Hand."
+            send_sms(user['phone'], sms_message)
+        
         conn.close()
         
-        send_sms(session.get('user_phone', ''), f"✅ Your purchase of {equipment['name']} has been confirmed! Thank you for using Lend A Hand.")
-        
-        return jsonify({'success': True, 'message': 'Purchase completed successfully', 'payment_id': razorpay_payment_id})
+        return jsonify({
+            'success': True, 
+            'message': 'Purchase completed successfully', 
+            'booking_id': booking_id,
+            'payment_id': razorpay_payment_id
+        })
         
     except Exception as e:
         print(f"❌ Error processing equipment payment: {str(e)}")
