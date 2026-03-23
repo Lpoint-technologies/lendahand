@@ -12,6 +12,15 @@ import uuid
 import threading
 import time
 import random
+ ================= RAZORPAY CONFIGURATION ==================
+import razorpay
+
+# Razorpay Configuration - Replace with your actual keys
+RAZORPAY_KEY_ID = "rzp_live_SUdjgvABxv5Fhh"  # Get from Razorpay Dashboard
+RAZORPAY_KEY_SECRET = "o92qQsBMFasjdPwGb1MY394S"    # Get from Razorpay Dashboard
+
+# Initialize Razorpay client
+razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'
@@ -558,7 +567,40 @@ def init_vendors_db():
                 FOREIGN KEY (loan_id) REFERENCES loan_purchases(id)
             )
         ''')
-        
+        # Add after your loan_payments table creation
+        cursor.execute('''
+    CREATE TABLE IF NOT EXISTS razorpay_payments (
+        id SERIAL PRIMARY KEY,
+        order_id VARCHAR(100) UNIQUE NOT NULL,
+        razorpay_order_id VARCHAR(100) NOT NULL,
+        loan_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        amount DECIMAL(10,2) NOT NULL,
+        emi_number INTEGER NOT NULL,
+        payment_type VARCHAR(50),
+        status VARCHAR(50) DEFAULT 'created',
+        payment_id VARCHAR(100),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (loan_id) REFERENCES loan_purchases(id)
+    )
+''')
+
+        cursor.execute('''
+    CREATE TABLE IF NOT EXISTS equipment_payment_sessions (
+        id SERIAL PRIMARY KEY,
+        order_id VARCHAR(100) UNIQUE NOT NULL,
+        razorpay_order_id VARCHAR(100) NOT NULL,
+        equipment_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        amount DECIMAL(10,2) NOT NULL,
+        notes TEXT,
+        status VARCHAR(50) DEFAULT 'created',
+        payment_id VARCHAR(100),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (equipment_id) REFERENCES equipment(id)
+    )
+''')
         conn.commit()
         conn.close()
         print("✅ Vendors database initialized with loan tables")
@@ -1285,7 +1327,358 @@ def pay_emi():
             conn.rollback()
             conn.close()
         return jsonify({'error': str(e)}), 500
+# ================= RAZORPAY PAYMENT ROUTES ==================
 
+@app.route('/api/loan/create-razorpay-order', methods=['POST'])
+def create_razorpay_order():
+    """Create Razorpay order for EMI payment"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        data = request.get_json()
+        loan_id = data.get('loan_id')
+        amount = data.get('amount')
+        
+        if not loan_id or not amount:
+            return jsonify({'error': 'Loan ID and amount are required'}), 400
+        
+        user_id = session['user_id']
+        user_name = session.get('user_name', 'User')
+        user_email = session.get('user_email', '')
+        user_phone = session.get('user_phone', '')
+        
+        conn = get_vendors_db()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        cursor.execute("SELECT * FROM loan_purchases WHERE id = %s AND user_id = %s", (loan_id, user_id))
+        loan = cursor.fetchone()
+        
+        if not loan:
+            conn.close()
+            return jsonify({'error': 'Loan not found'}), 404
+        
+        if loan['status'] in ['defaulted', 'completed']:
+            conn.close()
+            return jsonify({'error': 'Cannot pay EMI on this loan'}), 400
+        
+        amount_in_paise = int(amount * 100)
+        
+        order_data = {
+            'amount': amount_in_paise,
+            'currency': 'INR',
+            'receipt': f'loan_{loan_id}_emi_{loan["emi_paid"] + 1}',
+            'notes': {
+                'loan_id': loan_id,
+                'user_id': user_id,
+                'emi_number': loan['emi_paid'] + 1,
+                'equipment': loan['equipment_name']
+            }
+        }
+        
+        order = razorpay_client.order.create(data=order_data)
+        
+        cursor.execute("""
+            INSERT INTO razorpay_payments 
+            (order_id, razorpay_order_id, loan_id, user_id, amount, emi_number, payment_type, status)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """, (order['id'], order['id'], loan_id, user_id, amount, loan['emi_paid'] + 1, 'emi', 'created'))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'order_id': order['id'],
+            'amount': amount,
+            'amount_paise': amount_in_paise,
+            'currency': 'INR',
+            'key_id': RAZORPAY_KEY_ID,
+            'user': {'name': user_name, 'email': user_email, 'contact': user_phone}
+        })
+        
+    except Exception as e:
+        print(f"❌ Error creating order: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/loan/razorpay-callback', methods=['POST'])
+def razorpay_callback():
+    """Handle Razorpay payment callback for EMI"""
+    try:
+        data = request.get_json()
+        razorpay_order_id = data.get('razorpay_order_id')
+        razorpay_payment_id = data.get('razorpay_payment_id')
+        razorpay_signature = data.get('razorpay_signature')
+        
+        # Verify signature
+        params_dict = {
+            'razorpay_order_id': razorpay_order_id,
+            'razorpay_payment_id': razorpay_payment_id,
+            'razorpay_signature': razorpay_signature
+        }
+        razorpay_client.utility.verify_payment_signature(params_dict)
+        
+        conn = get_vendors_db()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        cursor.execute("SELECT * FROM razorpay_payments WHERE razorpay_order_id = %s AND status = 'created'", (razorpay_order_id,))
+        payment_session = cursor.fetchone()
+        
+        if not payment_session:
+            conn.close()
+            return jsonify({'error': 'Payment session not found'}), 404
+        
+        cursor.execute("UPDATE razorpay_payments SET status = 'completed', payment_id = %s WHERE id = %s", 
+                      (razorpay_payment_id, payment_session['id']))
+        
+        # Process the payment using your existing logic
+        loan_id = payment_session['loan_id']
+        user_id = payment_session['user_id']
+        amount = payment_session['amount']
+        
+        # Call your existing EMI processing logic
+        conn2 = get_vendors_db()
+        cursor2 = conn2.cursor(cursor_factory=RealDictCursor)
+        
+        cursor2.execute("SELECT * FROM loan_purchases WHERE id = %s", (loan_id,))
+        loan = cursor2.fetchone()
+        
+        if loan and loan['status'] not in ['defaulted', 'completed']:
+            emi_paid = int(loan['emi_paid'] or 0)
+            new_emi_paid = emi_paid + 1
+            loan_term_months = int(loan['loan_term_months'])
+            new_status = 'completed' if new_emi_paid >= loan_term_months else 'active'
+            
+            # Calculate next due date
+            next_due_date = None
+            if loan['next_due_date']:
+                next_due = loan['next_due_date']
+                if isinstance(next_due, str):
+                    next_due = datetime.strptime(next_due, '%Y-%m-%d').date()
+                if next_due.month == 12:
+                    next_due_date = date(next_due.year + 1, 1, next_due.day)
+                else:
+                    next_due_date = date(next_due.year, next_due.month + 1, next_due.day)
+            
+            # Get or create loan_history
+            cursor2.execute("""
+                SELECT id FROM loan_history 
+                WHERE user_id = %s AND equipment_id = %s AND loan_amount = %s
+                ORDER BY created_at DESC LIMIT 1
+            """, (user_id, loan['equipment_id'], loan['loan_amount']))
+            history = cursor2.fetchone()
+            
+            if not history:
+                cursor2.execute("""
+                    INSERT INTO loan_history 
+                    (user_id, user_name, user_phone, user_email, equipment_id, equipment_name, 
+                     loan_amount, down_payment, interest_rate, loan_term_months, emi_amount, 
+                     total_payable, total_interest, first_emi_date, last_emi_date, status, 
+                     emi_paid, next_due_date, created_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    RETURNING id
+                """, (loan['user_id'], loan['user_name'], loan['user_phone'], loan['user_email'],
+                      loan['equipment_id'], loan['equipment_name'],
+                      loan['loan_amount'], loan['down_payment'], loan['interest_rate'],
+                      loan['loan_term_months'], loan['emi_amount'],
+                      loan['total_payable'], loan['total_interest'],
+                      loan['first_emi_date'], loan['last_emi_date'],
+                      new_status, new_emi_paid, next_due_date, loan['created_at']))
+                history = cursor2.fetchone()
+            
+            # Record payment
+            cursor2.execute("""
+                INSERT INTO loan_payments 
+                (loan_id, user_id, due_date, amount_paid, principal_paid, 
+                 interest_paid, payment_method, transaction_id, payment_month, remarks)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (history['id'], user_id, loan['next_due_date'], amount,
+                  amount * 0.7, amount * 0.3, 'razorpay', razorpay_payment_id,
+                  new_emi_paid, f'Paid via Razorpay - Payment ID: {razorpay_payment_id}'))
+            
+            # Update loan_history
+            cursor2.execute("""
+                UPDATE loan_history 
+                SET emi_paid = %s, next_due_date = %s, status = %s, 
+                    last_payment_date = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+                WHERE id = %s
+            """, (new_emi_paid, next_due_date, new_status, history['id']))
+            
+            # Update loan_purchases
+            cursor2.execute("""
+                UPDATE loan_purchases 
+                SET emi_paid = %s, next_due_date = %s, status = %s, 
+                    last_payment_date = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+                WHERE id = %s
+            """, (new_emi_paid, next_due_date, new_status, loan_id))
+            
+            conn2.commit()
+            
+            # Send SMS
+            send_sms(loan['user_phone'], f"✅ EMI payment of ₹{amount} for {loan['equipment_name']} received via Razorpay. EMI {new_emi_paid}/{loan_term_months} paid. - Lend A Hand")
+        
+        conn2.close()
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': 'Payment processed successfully', 'payment_id': razorpay_payment_id})
+        
+    except Exception as e:
+        print(f"❌ Error processing payment: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+@app.route('/api/equipment/create-razorpay-order', methods=['POST'])
+def create_equipment_razorpay_order():
+    """Create Razorpay order for equipment purchase"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        data = request.get_json()
+        equipment_id = data.get('equipment_id')
+        amount = data.get('amount')
+        notes = data.get('notes', '')
+        
+        if not equipment_id or not amount:
+            return jsonify({'error': 'Equipment ID and amount are required'}), 400
+        
+        user_id = session['user_id']
+        user_name = session.get('user_name', 'User')
+        user_email = session.get('user_email', '')
+        user_phone = session.get('user_phone', '')
+        
+        conn = get_vendors_db()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        cursor.execute("""
+            SELECT e.*, v.contact_name as vendor_name 
+            FROM equipment e 
+            JOIN vendors v ON e.vendor_email = v.email 
+            WHERE e.id = %s
+        """, (equipment_id,))
+        equipment = cursor.fetchone()
+        
+        if not equipment:
+            conn.close()
+            return jsonify({'error': 'Equipment not found'}), 404
+        
+        if int(equipment['stock_quantity'] or 0) <= 0:
+            conn.close()
+            return jsonify({'error': 'Equipment out of stock'}), 400
+        
+        amount_in_paise = int(amount * 100)
+        
+        order_data = {
+            'amount': amount_in_paise,
+            'currency': 'INR',
+            'receipt': f'equipment_{equipment_id}_purchase',
+            'notes': {'equipment_id': equipment_id, 'user_id': user_id, 'equipment_name': equipment['name']}
+        }
+        
+        order = razorpay_client.order.create(data=order_data)
+        
+        cursor.execute("""
+            INSERT INTO equipment_payment_sessions 
+            (order_id, razorpay_order_id, equipment_id, user_id, amount, notes, status)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (order['id'], order['id'], equipment_id, user_id, amount, notes, 'created'))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'order_id': order['id'],
+            'amount': amount,
+            'amount_paise': amount_in_paise,
+            'currency': 'INR',
+            'key_id': RAZORPAY_KEY_ID,
+            'user': {'name': user_name, 'email': user_email, 'contact': user_phone}
+        })
+        
+    except Exception as e:
+        print(f"❌ Error creating equipment order: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/equipment/razorpay-callback', methods=['POST'])
+def equipment_razorpay_callback():
+    """Handle Razorpay payment callback for equipment purchase"""
+    try:
+        data = request.get_json()
+        razorpay_order_id = data.get('razorpay_order_id')
+        razorpay_payment_id = data.get('razorpay_payment_id')
+        razorpay_signature = data.get('razorpay_signature')
+        equipment_id = data.get('equipment_id')
+        amount = data.get('amount')
+        notes = data.get('notes', '')
+        
+        # Verify signature
+        params_dict = {
+            'razorpay_order_id': razorpay_order_id,
+            'razorpay_payment_id': razorpay_payment_id,
+            'razorpay_signature': razorpay_signature
+        }
+        razorpay_client.utility.verify_payment_signature(params_dict)
+        
+        conn = get_vendors_db()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        cursor.execute("SELECT * FROM equipment_payment_sessions WHERE razorpay_order_id = %s AND status = 'created'", (razorpay_order_id,))
+        payment_session = cursor.fetchone()
+        
+        if not payment_session:
+            conn.close()
+            return jsonify({'error': 'Payment session not found'}), 404
+        
+        cursor.execute("UPDATE equipment_payment_sessions SET status = 'completed', payment_id = %s WHERE id = %s", 
+                      (razorpay_payment_id, payment_session['id']))
+        
+        # Get equipment details
+        cursor.execute("SELECT * FROM equipment WHERE id = %s", (equipment_id,))
+        equipment = cursor.fetchone()
+        
+        if equipment:
+            # Create booking record
+            start_date = datetime.now().strftime('%Y-%m-%d')
+            end_date = datetime.now().strftime('%Y-%m-%d')
+            
+            cursor.execute("""
+                INSERT INTO bookings 
+                (user_id, user_name, user_email, user_phone, equipment_id, equipment_name, 
+                 vendor_email, vendor_name, start_date, end_date, duration, total_amount, 
+                 status, notes, created_date)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+            """, (
+                payment_session['user_id'], session.get('user_name', 'User'), session.get('user_email', ''),
+                session.get('user_phone', ''), equipment_id, equipment['name'],
+                equipment['vendor_email'], equipment['vendor_name'], start_date, end_date,
+                1, amount, 'confirmed', f'Paid via Razorpay - Payment ID: {razorpay_payment_id}\n{notes}'
+            ))
+            
+            # Update stock
+            new_stock = int(equipment['stock_quantity'] or 0) - 1
+            cursor.execute("""
+                UPDATE equipment 
+                SET stock_quantity = %s,
+                    status = CASE 
+                        WHEN %s <= 0 THEN 'unavailable' 
+                        WHEN %s <= %s THEN 'low_stock'  
+                        ELSE 'available' 
+                    END
+                WHERE id = %s
+            """, (new_stock, new_stock, new_stock, equipment['min_stock_threshold'] or 5, equipment_id))
+        
+        conn.commit()
+        conn.close()
+        
+        send_sms(session.get('user_phone', ''), f"✅ Your purchase of {equipment['name']} has been confirmed! Thank you for using Lend A Hand.")
+        
+        return jsonify({'success': True, 'message': 'Purchase completed successfully', 'payment_id': razorpay_payment_id})
+        
+    except Exception as e:
+        print(f"❌ Error processing equipment payment: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 @app.route('/api/user/loan/<int:loan_id>/schedule')
 def get_loan_schedule(loan_id):
     """Get payment schedule for a loan"""
