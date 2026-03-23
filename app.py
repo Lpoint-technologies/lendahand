@@ -1076,14 +1076,14 @@ def get_user_loans():
 
 @app.route('/api/user/loan/pay-emi', methods=['POST'])
 def pay_emi():
-    """Farmer pays an EMI"""
+    """Farmer pays an EMI - FIXED: Updates existing loan record instead of creating copies"""
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     
     try:
         data = request.get_json()
         loan_id = data.get('loan_id')
-        payment_method = data.get('payment_method')
+        payment_method = data.get('payment_method', 'cash')
         transaction_id = data.get('transaction_id')
         remarks = data.get('remarks')
         
@@ -1102,25 +1102,17 @@ def pay_emi():
         """, (loan_id, user_id))
         
         loan = cursor.fetchone()
-        table_name = 'loan_purchases'
-        
-        # If not found, try loan_history
-        if not loan:
-            cursor.execute("""
-                SELECT * FROM loan_history 
-                WHERE id = %s AND user_id = %s
-            """, (loan_id, user_id))
-            loan = cursor.fetchone()
-            table_name = 'loan_history'
         
         if not loan:
             conn.close()
             return jsonify({'error': 'Loan not found'}), 404
         
         if loan['status'] == 'defaulted':
+            conn.close()
             return jsonify({'error': 'Cannot pay EMI on defaulted loan. Contact support.'}), 400
         
         if loan['status'] == 'completed':
+            conn.close()
             return jsonify({'error': 'Loan is already completed'}), 400
         
         # Convert Decimal to float for calculations
@@ -1134,7 +1126,7 @@ def pay_emi():
         monthly_rate = interest_rate / 100 / 12
         
         # Calculate outstanding balance
-        outstanding = loan_amount - (emi_paid * emi_amount * 0.7)
+        outstanding = loan_amount - (emi_paid * emi_amount * 0.7)  # Simplified principal calculation
         if outstanding < 0:
             outstanding = 0
             
@@ -1147,66 +1139,131 @@ def pay_emi():
         
         payment_month = emi_paid + 1
         
-        # Determine which table to use for the foreign key
-        # The loan_payments table has a foreign key to loan_history
-        # So we need to use loan_history.id
-        if table_name == 'loan_purchases':
-            # Check if there's a corresponding record in loan_history
-            cursor.execute("""
-                SELECT id FROM loan_history 
-                WHERE user_id = %s AND equipment_id = %s 
-                AND loan_amount = %s
-                ORDER BY id DESC LIMIT 1
-            """, (user_id, loan['equipment_id'], loan['loan_amount']))
-            
-            history_record = cursor.fetchone()
-            if history_record:
-                payment_loan_id = history_record['id']
-            else:
-                # Create a record in loan_history first
-                cursor.execute("""
-                    INSERT INTO loan_history 
-                    (user_id, user_name, user_phone, user_email, equipment_id, equipment_name, 
-                     loan_amount, down_payment, interest_rate, loan_term_months, emi_amount, 
-                     total_payable, total_interest, first_emi_date, last_emi_date, status, 
-                     emi_paid, next_due_date, created_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                    RETURNING id
-                """, (
-                    loan['user_id'], loan['user_name'], loan['user_phone'], loan['user_email'],
-                    loan['equipment_id'], loan['equipment_name'],
-                    loan['loan_amount'], loan['down_payment'], loan['interest_rate'],
-                    loan['loan_term_months'], loan['emi_amount'],
-                    loan['total_payable'], loan['total_interest'],
-                    loan['first_emi_date'], loan['last_emi_date'],
-                    loan['status'], loan['emi_paid'], loan['next_due_date'],
-                    loan['created_at']
-                ))
-                history_record = cursor.fetchone()
-                payment_loan_id = history_record['id']
-        else:
-            payment_loan_id = loan_id
-        
-        # Record payment in loan_payments (uses loan_history foreign key)
+        # CRITICAL FIX: Check if there's an existing loan_history record for THIS loan_purchases
         cursor.execute("""
-            INSERT INTO loan_payments 
-            (loan_id, user_id, due_date, amount_paid, principal_paid, 
-             interest_paid, payment_method, transaction_id, payment_month, remarks)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (
-            payment_loan_id,
-            user_id,
-            loan['next_due_date'],
-            emi_amount,
-            principal_paid,
-            interest_paid,
-            payment_method,
-            transaction_id,
-            payment_month,
-            remarks
-        ))
+            SELECT id, emi_paid FROM loan_history 
+            WHERE user_id = %s AND equipment_id = %s 
+            AND loan_amount = %s 
+            AND created_at = (
+                SELECT MAX(created_at) FROM loan_history 
+                WHERE user_id = %s AND equipment_id = %s
+            )
+        """, (user_id, loan['equipment_id'], loan['loan_amount'], user_id, loan['equipment_id']))
         
-        # Update the original loan record
+        existing_history = cursor.fetchone()
+        
+        if existing_history:
+            # UPDATE existing loan_history record
+            history_loan_id = existing_history['id']
+            history_emi_paid = int(existing_history['emi_paid'] or 0)
+            
+            # Record payment using the existing history ID
+            cursor.execute("""
+                INSERT INTO loan_payments 
+                (loan_id, user_id, due_date, amount_paid, principal_paid, 
+                 interest_paid, payment_method, transaction_id, payment_month, remarks)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                history_loan_id,  # Use existing history ID
+                user_id,
+                loan['next_due_date'],
+                emi_amount,
+                principal_paid,
+                interest_paid,
+                payment_method,
+                transaction_id,
+                payment_month,
+                remarks
+            ))
+            
+            # Update the existing loan_history record
+            new_history_emi_paid = history_emi_paid + 1
+            
+            # Calculate next due date for history
+            next_due_date = None
+            if loan['next_due_date']:
+                if isinstance(loan['next_due_date'], str):
+                    next_due = datetime.strptime(loan['next_due_date'], '%Y-%m-%d').date()
+                else:
+                    next_due = loan['next_due_date']
+                
+                if next_due.month == 12:
+                    next_due_date = date(next_due.year + 1, 1, next_due.day)
+                else:
+                    next_due_date = date(next_due.year, next_due.month + 1, next_due.day)
+            
+            # Determine new status for history
+            new_history_status = loan['status']
+            if new_history_emi_paid >= loan_term_months:
+                new_history_status = 'completed'
+            elif loan['status'] == 'overdue':
+                if next_due_date and next_due_date < datetime.now().date():
+                    new_history_status = 'overdue'
+                else:
+                    new_history_status = 'active'
+            else:
+                new_history_status = 'active'
+            
+            cursor.execute("""
+                UPDATE loan_history 
+                SET emi_paid = %s,
+                    emi_missed = 0,
+                    default_days = 0,
+                    last_payment_date = CURRENT_TIMESTAMP,
+                    next_due_date = %s,
+                    status = %s,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = %s
+            """, (new_history_emi_paid, next_due_date, new_history_status, history_loan_id))
+            
+            print(f"✅ Updated existing loan_history record #{history_loan_id}")
+            
+        else:
+            # No history record exists yet - create ONE history record
+            cursor.execute("""
+                INSERT INTO loan_history 
+                (user_id, user_name, user_phone, user_email, equipment_id, equipment_name, 
+                 loan_amount, down_payment, interest_rate, loan_term_months, emi_amount, 
+                 total_payable, total_interest, first_emi_date, last_emi_date, status, 
+                 emi_paid, next_due_date, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id
+            """, (
+                loan['user_id'], loan['user_name'], loan['user_phone'], loan['user_email'],
+                loan['equipment_id'], loan['equipment_name'],
+                loan['loan_amount'], loan['down_payment'], loan['interest_rate'],
+                loan['loan_term_months'], loan['emi_amount'],
+                loan['total_payable'], loan['total_interest'],
+                loan['first_emi_date'], loan['last_emi_date'],
+                loan['status'], loan['emi_paid'], loan['next_due_date'],
+                loan['created_at']
+            ))
+            
+            history_result = cursor.fetchone()
+            history_loan_id = history_result['id']
+            
+            # Record payment using the new history ID
+            cursor.execute("""
+                INSERT INTO loan_payments 
+                (loan_id, user_id, due_date, amount_paid, principal_paid, 
+                 interest_paid, payment_method, transaction_id, payment_month, remarks)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                history_loan_id,
+                user_id,
+                loan['next_due_date'],
+                emi_amount,
+                principal_paid,
+                interest_paid,
+                payment_method,
+                transaction_id,
+                payment_month,
+                remarks
+            ))
+            
+            print(f"✅ Created initial loan_history record #{history_loan_id}")
+        
+        # Update the original loan_purchases record
         new_emi_paid = emi_paid + 1
         
         # Calculate next due date
@@ -1234,31 +1291,18 @@ def pay_emi():
         else:
             new_status = 'active'
         
-        # Update the original table
-        if table_name == 'loan_purchases':
-            cursor.execute("""
-        UPDATE loan_purchases 
-        SET emi_paid = %s,
-            emi_missed = 0,
-            default_days = 0,
-            last_payment_date = CURRENT_TIMESTAMP,
-            next_due_date = %s,
-            status = %s,
-            updated_at = CURRENT_TIMESTAMP
-        WHERE id = %s
-    """, (new_emi_paid, next_due_date, new_status, loan_id))
-        else:
-            cursor.execute("""
-        UPDATE loan_history 
-        SET emi_paid = %s,
-            emi_missed = 0,
-            default_days = 0,
-            last_payment_date = CURRENT_TIMESTAMP,
-            next_due_date = %s,
-            status = %s,
-            updated_at = CURRENT_TIMESTAMP
-        WHERE id = %s
-    """, (new_emi_paid, next_due_date, new_status, loan_id))
+        # Update the original loan_purchases
+        cursor.execute("""
+            UPDATE loan_purchases 
+            SET emi_paid = %s,
+                emi_missed = 0,
+                default_days = 0,
+                last_payment_date = CURRENT_TIMESTAMP,
+                next_due_date = %s,
+                status = %s,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = %s
+        """, (new_emi_paid, next_due_date, new_status, loan_id))
         
         conn.commit()
         conn.close()
