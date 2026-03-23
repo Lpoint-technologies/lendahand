@@ -4149,7 +4149,7 @@ async function submitRazorpayPayment() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                equipment_id: currentEquipment.id,
+                equipment_id: currentEquipment.id,  // Make sure this is correct
                 amount: totalAmount,
                 notes: notes,
                 payment_type: 'purchase'
@@ -4167,6 +4167,7 @@ async function submitRazorpayPayment() {
                 description: `Purchase: ${currentEquipment.name}`,
                 order_id: data.order_id,
                 handler: function(response) {
+                    // Pass equipment_id in the callback
                     verifyEquipmentPurchase(response, currentEquipment.id, totalAmount, notes);
                 },
                 prefill: {
@@ -4204,6 +4205,43 @@ async function submitRazorpayPayment() {
     }
 }
 
+async function verifyEquipmentPurchase(paymentResponse, equipmentId, amount, notes) {
+    try {
+        showLoading('Verifying payment...');
+        
+        const verifyResponse = await fetch('/api/equipment/razorpay-callback', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                razorpay_order_id: paymentResponse.razorpay_order_id,
+                razorpay_payment_id: paymentResponse.razorpay_payment_id,
+                razorpay_signature: paymentResponse.razorpay_signature,
+                equipment_id: equipmentId,  // Pass equipment_id
+                amount: amount,
+                notes: notes
+            })
+        });
+        
+        const result = await verifyResponse.json();
+        
+        if (result.success) {
+            showToast('✅ Purchase successful! Your booking is confirmed.');
+            console.log('Booking ID:', result.booking_id);
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        } else {
+            showToast('❌ Payment verification failed: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Verification error:', error);
+        showToast('Payment verification failed. Please contact support.', 'error');
+    } finally {
+        hideLoading();
+    }
+}
 async function verifyEquipmentPurchase(paymentResponse, equipmentId, amount, notes) {
     try {
         showLoading('Verifying payment...');
