@@ -1076,7 +1076,7 @@ def get_user_loans():
 
 @app.route('/api/user/loan/pay-emi', methods=['POST'])
 def pay_emi():
-    """Farmer pays an EMI - Robust version"""
+    """Farmer pays an EMI - Matching actual database schema"""
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     
@@ -1092,10 +1092,12 @@ def pay_emi():
             
         user_id = session['user_id']
         
+        print(f"🔍 Processing EMI payment for loan_id={loan_id}, user_id={user_id}")
+        
         conn = get_vendors_db()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         
-        # Get loan details
+        # Get loan details from loan_purchases
         cursor.execute("""
             SELECT * FROM loan_purchases 
             WHERE id = %s AND user_id = %s
@@ -1107,10 +1109,12 @@ def pay_emi():
             conn.close()
             return jsonify({'error': 'Loan not found'}), 404
         
+        print(f"✅ Found loan: ID={loan['id']}, Equipment={loan['equipment_name']}, EMI Paid={loan['emi_paid']}")
+        
         # Validate loan status
         if loan['status'] == 'defaulted':
             conn.close()
-            return jsonify({'error': 'Cannot pay EMI on defaulted loan'}), 400
+            return jsonify({'error': 'Cannot pay EMI on defaulted loan. Contact support.'}), 400
         
         if loan['status'] == 'completed':
             conn.close()
@@ -1125,9 +1129,10 @@ def pay_emi():
             conn.close()
             return jsonify({'error': 'All EMIs already paid'}), 400
         
-        # Get or create loan_history record
+        # Get or create loan_history record (only ONE per loan)
+        print("🔍 Checking for existing loan_history record...")
         cursor.execute("""
-            SELECT id FROM loan_history 
+            SELECT id, emi_paid FROM loan_history 
             WHERE user_id = %s AND equipment_id = %s 
             AND loan_amount = %s
             ORDER BY created_at DESC LIMIT 1
@@ -1136,27 +1141,41 @@ def pay_emi():
         history = cursor.fetchone()
         
         if not history:
-            # Create history record
+            print("📝 No existing loan_history found. Creating new record...")
+            # Create ONE history record matching your actual schema
             cursor.execute("""
                 INSERT INTO loan_history 
                 (user_id, user_name, user_phone, user_email, equipment_id, equipment_name, 
-                 vendor_email, vendor_name, loan_amount, down_payment, interest_rate, 
-                 loan_term_months, emi_amount, total_payable, total_interest, 
-                 first_emi_date, last_emi_date, status, emi_paid, next_due_date, created_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                 loan_amount, down_payment, interest_rate, loan_term_months, emi_amount, 
+                 total_payable, total_interest, first_emi_date, last_emi_date, status, 
+                 emi_paid, next_due_date, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id
             """, (
-                loan['user_id'], loan['user_name'], loan['user_phone'], loan['user_email'],
-                loan['equipment_id'], loan['equipment_name'],
-                loan['vendor_email'], loan['vendor_name'],
-                loan['loan_amount'], loan['down_payment'], loan['interest_rate'],
-                loan['loan_term_months'], loan['emi_amount'],
-                loan['total_payable'], loan['total_interest'],
-                loan['first_emi_date'], loan['last_emi_date'],
-                loan['status'], 0, loan['next_due_date'],
+                loan['user_id'], 
+                loan['user_name'], 
+                loan['user_phone'], 
+                loan['user_email'],
+                loan['equipment_id'], 
+                loan['equipment_name'],
+                loan['loan_amount'], 
+                loan['down_payment'], 
+                loan['interest_rate'],
+                loan['loan_term_months'], 
+                loan['emi_amount'],
+                loan['total_payable'], 
+                loan['total_interest'],
+                loan['first_emi_date'], 
+                loan['last_emi_date'],
+                loan['status'], 
+                0,  # emi_paid starts at 0
+                loan['next_due_date'],
                 loan['created_at']
             ))
             history = cursor.fetchone()
+            print(f"✅ Created new loan_history record with ID: {history['id']}")
+        else:
+            print(f"✅ Found existing loan_history record with ID: {history['id']}, EMI Paid: {history['emi_paid']}")
         
         # Calculate next due date
         next_due_date = None
@@ -1170,56 +1189,101 @@ def pay_emi():
                 next_due_date = date(next_due.year + 1, 1, next_due.day)
             else:
                 next_due_date = date(next_due.year, next_due.month + 1, next_due.day)
+            print(f"📅 Next due date calculated: {next_due_date}")
         
         new_emi_paid = emi_paid + 1
         new_status = 'completed' if new_emi_paid >= loan_term_months else 'active'
         
         # Record payment (using loan_history ID for foreign key)
+        print(f"💰 Recording payment: loan_history_id={history['id']}, amount={emi_amount}, month={new_emi_paid}")
         cursor.execute("""
             INSERT INTO loan_payments 
             (loan_id, user_id, due_date, amount_paid, principal_paid, 
              interest_paid, payment_method, transaction_id, payment_month, remarks)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
-            history['id'], user_id, loan['next_due_date'], emi_amount,
-            emi_amount * 0.7, emi_amount * 0.3, payment_method, transaction_id,
-            emi_paid + 1, remarks
+            history['id'],  # This must match the foreign key constraint
+            user_id, 
+            loan['next_due_date'], 
+            emi_amount,
+            emi_amount * 0.7,  # Principal portion
+            emi_amount * 0.3,  # Interest portion
+            payment_method, 
+            transaction_id,
+            new_emi_paid, 
+            remarks
         ))
+        print("✅ Payment recorded successfully")
         
-        # Update loan_history
+        # Update loan_history with new payment information
         cursor.execute("""
             UPDATE loan_history 
-            SET emi_paid = %s, next_due_date = %s, status = %s, updated_at = CURRENT_TIMESTAMP
+            SET emi_paid = %s, 
+                emi_missed = 0,
+                default_days = 0,
+                next_due_date = %s, 
+                status = %s, 
+                last_payment_date = CURRENT_TIMESTAMP,
+                updated_at = CURRENT_TIMESTAMP
             WHERE id = %s
         """, (new_emi_paid, next_due_date, new_status, history['id']))
+        print(f"✅ Updated loan_history: emi_paid={new_emi_paid}, status={new_status}")
         
         # Update loan_purchases
         cursor.execute("""
             UPDATE loan_purchases 
-            SET emi_paid = %s, next_due_date = %s, status = %s, updated_at = CURRENT_TIMESTAMP
+            SET emi_paid = %s, 
+                emi_missed = 0,
+                default_days = 0,
+                next_due_date = %s, 
+                status = %s, 
+                last_payment_date = CURRENT_TIMESTAMP,
+                updated_at = CURRENT_TIMESTAMP
             WHERE id = %s
         """, (new_emi_paid, next_due_date, new_status, loan_id))
+        print(f"✅ Updated loan_purchases: emi_paid={new_emi_paid}, status={new_status}")
         
         conn.commit()
         conn.close()
         
         # Send SMS notification
-        next_due_str = next_due_date.strftime('%d-%b-%Y') if next_due_date else 'N/A'
-        send_sms(loan['user_phone'], 
-            f"✅ EMI payment of ₹{emi_amount} for {loan['equipment_name']} received. EMI {new_emi_paid}/{loan_term_months} paid. Next due: {next_due_str} - Lend A Hand")
+        try:
+            next_due_str = next_due_date.strftime('%d-%b-%Y') if next_due_date else 'N/A'
+            sms_message = f"✅ EMI payment of ₹{emi_amount:,.2f} for {loan['equipment_name']} received. EMI {new_emi_paid}/{loan_term_months} paid. Next due: {next_due_str} - Lend A Hand"
+            send_sms(loan['user_phone'], sms_message)
+            print(f"📱 SMS sent to {loan['user_phone']}")
+        except Exception as sms_error:
+            print(f"⚠️ SMS sending failed: {sms_error}")
         
         return jsonify({
             'success': True,
-            'message': 'EMI paid successfully'
+            'message': f'EMI paid successfully! EMI {new_emi_paid}/{loan_term_months} completed.',
+            'emi_paid': new_emi_paid,
+            'total_emis': loan_term_months,
+            'next_due_date': next_due_str if next_due_date else None,
+            'amount_paid': emi_amount
         })
         
+    except psycopg2.IntegrityError as e:
+        print(f"❌ Database integrity error: {str(e)}")
+        conn.rollback()
+        conn.close()
+        if "foreign key constraint" in str(e).lower():
+            return jsonify({'error': 'Database constraint error. The loan_history record may not exist properly.'}), 500
+        return jsonify({'error': f'Database error: {str(e)}'}), 500
     except psycopg2.Error as e:
-        print(f"Database error: {str(e)}")
+        print(f"❌ Database error: {str(e)}")
+        if conn:
+            conn.rollback()
+            conn.close()
         return jsonify({'error': f'Database error: {str(e)}'}), 500
     except Exception as e:
-        print(f"Error paying EMI: {str(e)}")
+        print(f"❌ Error paying EMI: {str(e)}")
         import traceback
         traceback.print_exc()
+        if conn:
+            conn.rollback()
+            conn.close()
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/user/loan/<int:loan_id>/schedule')
