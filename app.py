@@ -4650,9 +4650,9 @@ def submit_loan_purchase():
 
 @app.route('/api/admin/loans')
 def api_admin_loans():
-    """Get all loans with filtering options - NO DUPLICATES"""
+    """Get all loans with filtering options - Fetches from loan_purchases"""
     print("="*60)
-    print("LOAN API CALLED - NO DUPLICATES VERSION")
+    print("LOAN API CALLED - FETCHING FROM LOAN_PURCHASES")
     print("="*60)
     
     if 'admin_id' not in session or session.get('user_type') != 'admin':
@@ -4668,8 +4668,7 @@ def api_admin_loans():
         conn = get_vendors_db()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         
-        # Build query to get loans from loan_purchases only
-        # This prevents duplicates by not joining with loan_history
+        # Build query to get loans from loan_purchases
         query = """
             SELECT 
                 lp.id,
@@ -4695,6 +4694,8 @@ def api_admin_loans():
                 lp.created_at as created_date,
                 lp.first_emi_date,
                 lp.last_emi_date,
+                lp.purchase_amount,
+                lp.payment_mode,
                 e.image_url as equipment_image
             FROM loan_purchases lp
             LEFT JOIN equipment e ON lp.equipment_id = e.id
@@ -4711,10 +4712,11 @@ def api_admin_loans():
             query += """ AND (
                 lp.user_name ILIKE %s OR 
                 lp.user_phone ILIKE %s OR 
-                lp.equipment_name ILIKE %s
+                lp.equipment_name ILIKE %s OR
+                CAST(lp.id AS TEXT) ILIKE %s
             )"""
             search_pattern = f"%{search_term}%"
-            params.extend([search_pattern, search_pattern, search_pattern])
+            params.extend([search_pattern, search_pattern, search_pattern, search_pattern])
         
         query += " ORDER BY lp.created_at DESC"
         
@@ -4725,37 +4727,66 @@ def api_admin_loans():
         
         # Calculate additional fields for each loan
         today = datetime.now().date()
+        loans_with_details = []
+        
         for loan in all_loans:
+            # Convert to dictionary for easier manipulation
+            loan_dict = dict(loan)
+            
+            # Calculate days overdue and risk
             if loan.get('next_due_date'):
                 due_date = loan['next_due_date']
                 if isinstance(due_date, str):
                     due_date = datetime.strptime(due_date, '%Y-%m-%d').date()
                 
                 days_overdue = (today - due_date).days if today > due_date else 0
-                loan['days_overdue'] = days_overdue
+                loan_dict['days_overdue'] = days_overdue
                 
                 emi_missed = loan.get('emi_missed', 0) or 0
                 if emi_missed == 0:
-                    loan['default_risk'] = 'low'
+                    loan_dict['default_risk'] = 'low'
                 elif emi_missed <= 2:
-                    loan['default_risk'] = 'medium'
+                    loan_dict['default_risk'] = 'medium'
                 elif emi_missed <= 4:
-                    loan['default_risk'] = 'high'
+                    loan_dict['default_risk'] = 'high'
                 else:
-                    loan['default_risk'] = 'critical'
+                    loan_dict['default_risk'] = 'critical'
             else:
-                loan['days_overdue'] = 0
-                loan['default_risk'] = 'low'
+                loan_dict['days_overdue'] = 0
+                loan_dict['default_risk'] = 'low'
+            
+            # Get recent payments for this loan
+            try:
+                cursor.execute("""
+                    SELECT * FROM loan_payments 
+                    WHERE loan_id = %s 
+                    ORDER BY payment_date DESC 
+                    LIMIT 5
+                """, (loan['id'],))
+                loan_dict['recent_payments'] = cursor.fetchall()
+            except Exception as e:
+                print(f"⚠️ Could not fetch payments for loan {loan['id']}: {e}")
+                loan_dict['recent_payments'] = []
+            
+            # Calculate progress percentage
+            if loan['loan_term_months'] and loan['loan_term_months'] > 0:
+                progress_percentage = (loan['emi_paid'] / loan['loan_term_months']) * 100
+                loan_dict['progress_percentage'] = round(progress_percentage, 1)
+            else:
+                loan_dict['progress_percentage'] = 0
+            
+            loans_with_details.append(loan_dict)
         
         conn.close()
-        return jsonify(all_loans)
+        
+        print(f"✅ Returning {len(loans_with_details)} loans with details")
+        return jsonify(loans_with_details)
         
     except Exception as e:
         print(f"❌ Error fetching loans: {str(e)}")
         import traceback
         traceback.print_exc()
         return jsonify({'error': str(e), 'loans': []}), 500
-
 @app.route('/debug-check-loans')
 def debug_check_loans():
     """Debug endpoint to check loan data"""
