@@ -1548,6 +1548,42 @@ def create_equipment_razorpay_order():
         conn = get_vendors_db()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         
+        # CREATE THE TABLE RIGHT HERE - THIS WILL FIX THE ISSUE
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS equipment_payment_sessions (
+                id SERIAL PRIMARY KEY,
+                order_id VARCHAR(100) UNIQUE NOT NULL,
+                razorpay_order_id VARCHAR(100) NOT NULL,
+                equipment_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                amount DECIMAL(10,2) NOT NULL,
+                notes TEXT,
+                status VARCHAR(50) DEFAULT 'created',
+                payment_id VARCHAR(100),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # Also create the razorpay_payments table if it doesn't exist
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS razorpay_payments (
+                id SERIAL PRIMARY KEY,
+                order_id VARCHAR(100) UNIQUE NOT NULL,
+                razorpay_order_id VARCHAR(100) NOT NULL,
+                loan_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                amount DECIMAL(10,2) NOT NULL,
+                emi_number INTEGER NOT NULL,
+                payment_type VARCHAR(50),
+                status VARCHAR(50) DEFAULT 'created',
+                payment_id VARCHAR(100),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        conn.commit()  # Commit the table creation
+        
         cursor.execute("""
             SELECT e.*, v.contact_name as vendor_name 
             FROM equipment e 
@@ -1597,7 +1633,6 @@ def create_equipment_razorpay_order():
     except Exception as e:
         print(f"❌ Error creating equipment order: {str(e)}")
         return jsonify({'error': str(e)}), 500
-
 
 @app.route('/api/equipment/razorpay-callback', methods=['POST'])
 def equipment_razorpay_callback():
