@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lend A Hand - Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <style>
         /* All your existing CSS remains exactly the same */
         :root {
@@ -2218,26 +2219,40 @@
                     <input type="text" id="emiAmount" class="form-control" readonly>
                 </div>
                 
+                <!-- NEW: Payment Method Selection with Razorpay Option -->
                 <div class="form-group">
                     <label for="paymentMethod">Payment Method *</label>
                     <select id="paymentMethod" class="form-control" required>
                         <option value="">Select Payment Method</option>
-                        <option value="credit_card">Credit Card</option>
-                        <option value="debit_card">Debit Card</option>
-                        <option value="net_banking">Net Banking</option>
-                        <option value="upi">UPI</option>
-                        <option value="cash">Cash</option>
+                        <option value="razorpay">🔐 Pay with Razorpay (Online)</option>
+                        <option value="cash">💵 Pay with Cash</option>
+                        <option value="credit_card">💳 Credit Card</option>
+                        <option value="debit_card">💳 Debit Card</option>
+                        <option value="net_banking">🏦 Net Banking</option>
+                        <option value="upi">📱 UPI</option>
                     </select>
                 </div>
                 
-                <div class="form-group">
-                    <label for="transactionId">Transaction ID (Optional)</label>
-                    <input type="text" id="transactionId" class="form-control" placeholder="Enter transaction ID">
-                </div>
+                <!-- Fields for Cash/Manual Payments (Hidden by default) -->
+                <!-- Fields for Cash/Manual Payments (Visible by default) -->
+<div id="manualPaymentFields" style="display: block;">
+    <div class="form-group">
+        <label for="transactionId">Transaction ID (Optional)</label>
+        <input type="text" id="transactionId" class="form-control" placeholder="Enter transaction ID">
+    </div>
+    
+    <div class="form-group">
+        <label for="paymentRemarks">Remarks (Optional)</label>
+        <textarea id="paymentRemarks" class="form-control" rows="2" placeholder="Any notes..."></textarea>
+    </div>
+</div>
                 
-                <div class="form-group">
-                    <label for="paymentRemarks">Remarks (Optional)</label>
-                    <textarea id="paymentRemarks" class="form-control" rows="2" placeholder="Any notes..."></textarea>
+                <!-- NEW: Razorpay Info Message -->
+                <div id="razorpayInfo" style="display: none; background: #e8f5e9; padding: 12px; border-radius: 8px; margin-top: 15px;">
+                    <i class="fas fa-shield-alt"></i> 
+                    <strong>Secure Payment</strong><br>
+                    You will be redirected to Razorpay secure payment gateway. 
+                    Supports Credit/Debit Cards, UPI, Net Banking, and Wallets.
                 </div>
             </form>
         </div>
@@ -2250,7 +2265,6 @@
         </div>
     </div>
 </div>
-
     <!-- ================= MODALS ================= -->
     
     <!-- Booking Modal with Loan Option -->
@@ -2264,13 +2278,16 @@
             <div class="modal-body">
                 <!-- Payment Mode Selection Tabs -->
                 <div class="payment-mode-tabs">
-                    <button class="payment-mode-btn active" data-mode="full" onclick="switchPaymentMode('full')">
-                        <i class="fas fa-credit-card"></i> Full Payment (Cash)
-                    </button>
-                    <button class="payment-mode-btn" data-mode="loan" onclick="switchPaymentMode('loan')">
-                        <i class="fas fa-hand-holding-usd"></i> Finance with Loan
-                    </button>
-                </div>
+    <button class="payment-mode-btn active" data-mode="full" onclick="switchPaymentMode('full')">
+        <i class="fas fa-credit-card"></i> Full Payment (Cash)
+    </button>
+    <button class="payment-mode-btn" data-mode="razorpay" onclick="switchPaymentMode('razorpay')">
+        <i class="fas fa-lock"></i> Pay Online (Razorpay)
+    </button>
+    <button class="payment-mode-btn" data-mode="loan" onclick="switchPaymentMode('loan')">
+        <i class="fas fa-hand-holding-usd"></i> Finance with Loan
+    </button>
+</div>
 
                 <!-- Full Payment Section -->
                 <div id="fullPaymentSection" class="payment-section" style="display: block;">
@@ -2435,7 +2452,89 @@
                                 </form>
                             </div>
                         </div>
-                        
+                        <!-- Razorpay Payment Section -->
+<div id="razorpayPaymentSection" class="payment-section" style="display: none;">
+    <div class="booking-container">
+        <!-- Left Column: Equipment Details -->
+        <div class="booking-column">
+            <div class="booking-section">
+                <h3 class="section-title">Equipment Details</h3>
+                <div id="razorpayEquipmentInfo" class="equipment-card">
+                    <!-- Equipment info will be loaded here -->
+                </div>
+            </div>
+            
+            <div class="booking-section">
+                <h3 class="section-title">Order Summary</h3>
+                <div class="pricing-summary">
+                    <div class="price-line">
+                        <span>Purchase Price</span>
+                        <span>₹<span id="razorpayPurchasePrice">0</span></span>
+                    </div>
+                    <div class="price-line">
+                        <span>Service Fee (10%)</span>
+                        <span>₹<span id="razorpayServiceFee">0</span></span>
+                    </div>
+                    <div class="price-line total">
+                        <span><strong>Total Amount</strong></span>
+                        <span><strong>₹<span id="razorpayTotalAmount">0</span></strong></span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="razorpayNotes">Special Requests (Optional)</label>
+                    <textarea id="razorpayNotes" class="form-control" rows="3" placeholder="Any special instructions..."></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Column: Payment Info -->
+        <div class="booking-column">
+            <div class="booking-section">
+                <h3 class="section-title">Secure Payment</h3>
+                <div style="background: #e8f5e9; padding: 20px; border-radius: 8px; text-align: center;">
+                    <i class="fas fa-shield-alt" style="font-size: 3rem; color: var(--secondary); margin-bottom: 15px;"></i>
+                    <h4 style="color: var(--secondary); margin-bottom: 10px;">Pay Securely with Razorpay</h4>
+                    <p style="margin-bottom: 15px;">You will be redirected to Razorpay secure payment gateway.</p>
+                    <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+                        <span><i class="fas fa-credit-card"></i> Cards</span>
+                        <span><i class="fas fa-mobile-alt"></i> UPI</span>
+                        <span><i class="fas fa-university"></i> NetBanking</span>
+                        <span><i class="fas fa-wallet"></i> Wallets</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="booking-section">
+                <h3 class="section-title">Vendor Information</h3>
+                <div id="razorpayVendorInfo" class="equipment-card">
+                    <!-- Vendor info will be loaded here -->
+                </div>
+            </div>
+            
+            <div class="booking-section">
+                <h3 class="section-title">Why Pay Online?</h3>
+                <div class="tips-container">
+                    <div class="tip-box">
+                        <i class="fas fa-bolt"></i>
+                        <h4>Instant Confirmation</h4>
+                        <p>Your booking is confirmed immediately after payment</p>
+                    </div>
+                    <div class="tip-box">
+                        <i class="fas fa-lock"></i>
+                        <h4>Secure & Safe</h4>
+                        <p>PCI-DSS compliant payment gateway</p>
+                    </div>
+                    <div class="tip-box">
+                        <i class="fas fa-receipt"></i>
+                        <h4>Digital Receipt</h4>
+                        <p>Get instant payment confirmation via email & SMS</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
                         <!-- Right Column: EMI Calculation & Summary -->
                         <div class="booking-column">
                             <div class="booking-section">
@@ -2959,6 +3058,25 @@
         document.getElementById('loanDownPayment')?.addEventListener('input', updateLoanCalculator);
         document.getElementById('loanInterestRate')?.addEventListener('change', updateLoanCalculator);
         document.getElementById('loanTerm')?.addEventListener('change', updateLoanCalculator);
+        // Add payment method change listener for the Pay EMI modal
+document.addEventListener('DOMContentLoaded', function() {
+    // Payment method change handler for Pay EMI modal
+    const paymentMethodSelect = document.getElementById('paymentMethod');
+    if (paymentMethodSelect) {
+        paymentMethodSelect.addEventListener('change', function() {
+            const manualFields = document.getElementById('manualPaymentFields');
+            const razorpayInfo = document.getElementById('razorpayInfo');
+            
+            if (this.value === 'razorpay') {
+                if (manualFields) manualFields.style.display = 'none';
+                if (razorpayInfo) razorpayInfo.style.display = 'block';
+            } else {
+                if (manualFields) manualFields.style.display = 'block';
+                if (razorpayInfo) razorpayInfo.style.display = 'none';
+            }
+        });
+    }
+});
     }
 
     function toggleMobileMenu() {
@@ -3049,20 +3167,54 @@
 
     // ================= LOAN CALCULATOR FUNCTIONS =================
     function switchPaymentMode(mode) {
-        paymentMode = mode;
-        
-        // Update button styles
-        document.querySelectorAll('.payment-mode-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
-        
-        // Show/hide sections
-        document.getElementById('fullPaymentSection').style.display = mode === 'full' ? 'block' : 'none';
-        document.getElementById('loanPaymentSection').style.display = mode === 'loan' ? 'block' : 'none';
-        
-        document.getElementById('paymentMode').value = mode;
+    paymentMode = mode;
+    
+    // Update button styles
+    document.querySelectorAll('.payment-mode-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+    
+    // Show/hide sections
+    document.getElementById('fullPaymentSection').style.display = mode === 'full' ? 'block' : 'none';
+    document.getElementById('razorpayPaymentSection').style.display = mode === 'razorpay' ? 'block' : 'none';
+    document.getElementById('loanPaymentSection').style.display = mode === 'loan' ? 'block' : 'none';
+    
+    document.getElementById('paymentMode').value = mode;
+    
+    // If Razorpay mode, update the payment info
+    if (mode === 'razorpay' && currentEquipment) {
+        updateRazorpaySection(currentEquipment);
     }
+}
+function updateRazorpaySection(equipment) {
+    const purchasePrice = parseFloat(equipment.purchase_price) || parseFloat(equipment.price) || 0;
+    const serviceFee = Math.round(purchasePrice * 0.1);
+    const totalAmount = purchasePrice + serviceFee;
+    
+    // Update prices
+    document.getElementById('razorpayPurchasePrice').textContent = purchasePrice.toLocaleString();
+    document.getElementById('razorpayServiceFee').textContent = serviceFee.toLocaleString();
+    document.getElementById('razorpayTotalAmount').textContent = totalAmount.toLocaleString();
+    
+    // Update equipment info
+    document.getElementById('razorpayEquipmentInfo').innerHTML = `
+        <h3>${equipment.name}</h3>
+        <p>${equipment.description || 'No description'}</p>
+        <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+            <span><i class="fas fa-map-marker-alt"></i> ${equipment.location}</span>
+            <span><i class="fas fa-user"></i> ${equipment.vendor_name}</span>
+        </div>
+    `;
+    
+    // Update vendor info
+    document.getElementById('razorpayVendorInfo').innerHTML = `
+        <h4>${equipment.vendor_name}</h4>
+        <p><i class="fas fa-store"></i> ${equipment.business_name || ''}</p>
+        <p><i class="fas fa-phone"></i> ${equipment.vendor_phone || 'Contact via platform'}</p>
+        <p><i class="fas fa-envelope"></i> ${equipment.vendor_email || ''}</p>
+    `;
+}
 
     function updateLoanCalculator() {
         if (!currentEquipment) return;
@@ -3963,14 +4115,135 @@
     }
 
     async function confirmBooking() {
-        const mode = paymentMode;
-        
-        if (mode === 'full') {
-            await submitFullPayment();
-        } else {
-            await submitLoanApplication();
-        }
+    const mode = paymentMode;
+    
+    if (mode === 'full') {
+        await submitFullPayment();
+    } else if (mode === 'razorpay') {
+        await submitRazorpayPayment();
+    } else {
+        await submitLoanApplication();
     }
+}
+async function submitRazorpayPayment() {
+    if (!currentEquipment) {
+        showToast('Equipment not found', 'error');
+        return;
+    }
+    
+    const purchasePrice = parseFloat(currentEquipment.purchase_price) || parseFloat(currentEquipment.price) || 0;
+    const serviceFee = Math.round(purchasePrice * 0.1);
+    const totalAmount = purchasePrice + serviceFee;
+    const notes = document.getElementById('razorpayNotes').value;
+    
+    const confirmBtn = document.getElementById('confirmBookingBtn');
+    const originalText = confirmBtn.innerHTML;
+    confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    confirmBtn.disabled = true;
+    
+    try {
+        // Create Razorpay order for equipment purchase
+        const response = await fetch('/api/equipment/create-razorpay-order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                equipment_id: currentEquipment.id,
+                amount: totalAmount,
+                notes: notes,
+                payment_type: 'purchase'
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            const options = {
+                key: data.key_id,
+                amount: data.amount_paise,
+                currency: data.currency,
+                name: 'Lend A Hand',
+                description: `Purchase: ${currentEquipment.name}`,
+                order_id: data.order_id,
+                handler: function(response) {
+                    verifyEquipmentPurchase(response, currentEquipment.id, totalAmount, notes);
+                },
+                prefill: {
+                    name: data.user.name,
+                    email: data.user.email,
+                    contact: data.user.contact
+                },
+                notes: {
+                    equipment_id: currentEquipment.id,
+                    payment_type: 'purchase'
+                },
+                theme: {
+                    color: '#4CAF50'
+                },
+                modal: {
+                    ondismiss: function() {
+                        hideLoading();
+                        showToast('Payment cancelled', 'info');
+                    }
+                }
+            };
+            
+            const razorpay = new Razorpay(options);
+            razorpay.open();
+            hideLoading();
+        } else {
+            showToast('Failed to initialize payment: ' + data.error, 'error');
+        }
+    } catch (error) {
+        console.error('Razorpay error:', error);
+        showToast('Payment initialization failed. Please try again.', 'error');
+    } finally {
+        confirmBtn.innerHTML = originalText;
+        confirmBtn.disabled = false;
+    }
+}
+
+async function verifyEquipmentPurchase(paymentResponse, equipmentId, amount, notes) {
+    try {
+        showLoading('Verifying payment...');
+        
+        const verifyResponse = await fetch('/api/equipment/razorpay-callback', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                razorpay_order_id: paymentResponse.razorpay_order_id,
+                razorpay_payment_id: paymentResponse.razorpay_payment_id,
+                razorpay_signature: paymentResponse.razorpay_signature,
+                equipment_id: equipmentId,
+                amount: amount,
+                notes: notes
+            })
+        });
+        
+        const result = await verifyResponse.json();
+        
+        if (result.success) {
+            showToast('✅ Purchase successful! Your booking is confirmed.');
+            bookingModal.style.display = 'none';
+            
+            await loadEquipmentFromDB();
+            loadRecommendedEquipment();
+            loadBrowseEquipment();
+            if (typeof loadUserOrders === 'function') loadUserOrders();
+            updateStats();
+        } else {
+            showToast('❌ Payment verification failed: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Verification error:', error);
+        showToast('Payment verification failed. Please contact support.', 'error');
+    } finally {
+        hideLoading();
+    }
+}
 
     async function submitFullPayment() {
         const equipmentId = parseInt(document.getElementById('equipmentId').value);
@@ -4278,6 +4551,15 @@
         return;
     }
     
+    // If Razorpay is selected, process online payment
+    if (paymentMethod === 'razorpay') {
+        const emiAmount = document.getElementById('emiAmount').value;
+        const amount = parseFloat(emiAmount.replace('₹', '').replace(/,/g, ''));
+        await processRazorpayPayment(parseInt(loanId), amount);
+        return;
+    }
+    
+    // For manual payments (cash, card, etc.)
     const submitBtn = document.querySelector('#payEmiModal .btn-success');
     const originalText = submitBtn.innerHTML;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
@@ -4314,7 +4596,163 @@
         submitBtn.disabled = false;
     }
 }
+    // ================= RAZORPAY PAYMENT FUNCTIONS =================
+async function processRazorpayPayment(loanId, amount) {
+    try {
+        showLoading('Initializing secure payment gateway...');
+        
+        const response = await fetch('/api/loan/create-razorpay-order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                loan_id: loanId,
+                amount: amount
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Configure Razorpay options
+            const options = {
+                key: data.key_id,
+                amount: data.amount_paise,
+                currency: data.currency,
+                name: 'Lend A Hand',
+                description: `EMI Payment - ₹${amount}`,
+                order_id: data.order_id,
+                handler: function(response) {
+                    verifyRazorpayPayment(response, loanId);
+                },
+                prefill: {
+                    name: data.user.name,
+                    email: data.user.email,
+                    contact: data.user.contact
+                },
+                notes: {
+                    loan_id: loanId,
+                    payment_type: 'emi'
+                },
+                theme: {
+                    color: '#4CAF50'
+                },
+                modal: {
+                    ondismiss: function() {
+                        hideLoading();
+                        console.log('Payment modal closed');
+                        showToast('Payment cancelled', 'info');
+                    }
+                }
+            };
+            
+            // Open Razorpay checkout
+            const razorpay = new Razorpay(options);
+            razorpay.open();
+            hideLoading();
+            
+        } else {
+            hideLoading();
+            showToast('Failed to initialize payment: ' + data.error, 'error');
+        }
+    } catch (error) {
+        console.error('Razorpay error:', error);
+        hideLoading();
+        showToast('Payment initialization failed. Please try again.', 'error');
+    }
+}
 
+async function verifyRazorpayPayment(paymentResponse, loanId) {
+    try {
+        showLoading('Verifying payment...');
+        
+        const verifyResponse = await fetch('/api/loan/razorpay-callback', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                razorpay_order_id: paymentResponse.razorpay_order_id,
+                razorpay_payment_id: paymentResponse.razorpay_payment_id,
+                razorpay_signature: paymentResponse.razorpay_signature
+            })
+        });
+        
+        const result = await verifyResponse.json();
+        
+        if (result.success) {
+            showToast('✅ Payment successful! Your EMI has been recorded.');
+            closePayEmiModal();
+            loadFarmerLoans(); // Reload loans
+            updateStats(); // Update dashboard stats
+        } else {
+            showToast('❌ Payment verification failed: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Verification error:', error);
+        showToast('Payment verification failed. Please contact support.', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+// Loading overlay functions
+function showLoading(message) {
+    // Remove existing overlay if any
+    hideLoading();
+    
+    const overlay = document.createElement('div');
+    overlay.id = 'loadingOverlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        color: white;
+        font-size: 18px;
+    `;
+    overlay.innerHTML = `
+        <div style="text-align: center;">
+            <div class="spinner"></div>
+            <div>${message}</div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+}
+
+function hideLoading() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) overlay.remove();
+}
+
+// Add CSS for spinner if not already present
+if (!document.getElementById('spinner-styles')) {
+    const style = document.createElement('style');
+    style.id = 'spinner-styles';
+    style.textContent = `
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    `;
+    document.head.appendChild(style);
+}
     async function viewLoanSchedule(loanId) {
     try {
         showToast('Loading payment schedule...', 'info');
