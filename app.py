@@ -243,13 +243,13 @@ def check_emi_due_dates():
                     # Send overdue reminder
                     if new_emi_missed == 1:
                         send_sms(loan['user_phone'], 
-                            f"REMINDER: Your EMI for {loan['equipment_name']} of ₹{loan['emi_amount']} is now OVERDUE by {days_since_due} days. Please pay immediately to avoid default. - Lend A Hand")
+                            f"REMINDER: Your EMI for {loan['equipment_name']}  is now OVERDUE by {days_since_due} days. Please pay immediately to avoid default. - Lend A Hand")
                 else:
                     new_status = 'active'
                     # Send regular reminder for first few days
                     if days_since_due <= 7:
                         send_sms(loan['user_phone'], 
-                            f"REMINDER: Your EMI for {loan['equipment_name']} of ₹{loan['emi_amount']} was due on {loan['next_due_date']}. Please pay to avoid late fees. - Lend A Hand")
+                            f"REMINDER: Your EMI for {loan['equipment_name']}  was due on {loan['next_due_date']}. Please pay to avoid late fees. - Lend A Hand")
                 
                 # Update loan record
                 cursor.execute("""
@@ -1289,7 +1289,7 @@ def pay_emi():
         # Send SMS notification
         try:
             next_due_str = next_due_date.strftime('%d-%b-%Y') if next_due_date else 'N/A'
-            sms_message = f"✅ EMI payment of ₹{emi_amount:,.2f} for {loan['equipment_name']} received. EMI {new_emi_paid}/{loan_term_months} paid. Next due: {next_due_str} - Lend A Hand"
+            sms_message = f"✅ EMI payment for {loan['equipment_name']} received. EMI {new_emi_paid}/{loan_term_months} paid. Next due: {next_due_str} - Lend A Hand"
             send_sms(loan['user_phone'], sms_message)
             print(f"📱 SMS sent to {loan['user_phone']}")
         except Exception as sms_error:
@@ -1521,7 +1521,7 @@ def razorpay_callback():
             conn2.commit()
             
             # Send SMS
-            send_sms(loan['user_phone'], f"✅ EMI payment of ₹{amount} for {loan['equipment_name']} received via Razorpay. EMI {new_emi_paid}/{loan_term_months} paid. - Lend A Hand")
+            send_sms(loan['user_phone'], f"✅ EMI payment  for {loan['equipment_name']} received via Razorpay. EMI {new_emi_paid}/{loan_term_months} paid. - Lend A Hand")
         
         conn2.close()
         conn.commit()
@@ -3937,7 +3937,7 @@ def update_rent_request_status(request_id):
             print(f"⚠️ SMS sending failed: {sms_result.get('error', 'Unknown error')}")
         
         if vendor_phone and new_status == 'approved':
-            vendor_message = f"✅ You approved rent request #{request_id} for {equipment_name}. User: {user_name}, Amount: ₹{total_amount}, Duration: {duration} days. - Lend A Hand"
+            vendor_message = f"✅ You approved rent request #{request_id} for {equipment_name}. User: {user_name}, Duration: {duration} days. - Lend A Hand"
             vendor_sms_result = send_sms(vendor_phone, vendor_message)
             
             if vendor_sms_result.get('success'):
@@ -4217,7 +4217,7 @@ def update_booking_status(booking_id):
             total_amount = booking_data['total_amount']
             
             if new_status == 'confirmed':
-                message = f"Dear {user_name}, your booking for {equipment_name} has been confirmed! Total amount: ₹{total_amount}."
+                message = f"Dear {user_name}, your booking for {equipment_name} has been confirmed! ."
             elif new_status == 'rejected':
                 message = f"Dear {user_name}, your booking for {equipment_name} has been rejected."
             elif new_status == 'completed':
@@ -5112,12 +5112,12 @@ def submit_loan_purchase():
         conn.close()
         
         # Send SMS notification to farmer
-        farmer_message = f"Your loan application for {equipment_name} has been submitted successfully! Booking ID: #{booking_id}. First EMI of ₹{data['emi_amount']} is due on {first_emi_date.strftime('%d-%b-%Y')}. - Lend A Hand"
+        farmer_message = f"Your loan application for {equipment_name} has been submitted successfully! Booking ID: #{booking_id}. First EMI  is due on {first_emi_date.strftime('%d-%b-%Y')}. - Lend A Hand"
         send_sms(user_phone, farmer_message)
         
         # Send SMS notification to vendor
         if vendor_phone:
-            vendor_message = f"New loan purchase booking #{booking_id} for {equipment_name} by {user_name}. Amount: ₹{data['purchase_amount']} - Lend A Hand"
+            vendor_message = f"New loan purchase booking #{booking_id} for {equipment_name} by {user_name}. - Lend A Hand"
             send_sms(vendor_phone, vendor_message)
         
         return jsonify({
@@ -5485,7 +5485,7 @@ def api_admin_add_loan_payment(loan_id):
         conn.commit()
         conn.close()
         
-        send_sms(loan['user_phone'], f"Your payment of ₹{amount_paid} for {loan['equipment_name']} loan has been recorded. EMI {new_emi_paid}/{loan['loan_term_months']} paid. - Lend A Hand")
+        send_sms(loan['user_phone'], f"Your payment  for {loan['equipment_name']} loan has been recorded. EMI {new_emi_paid}/{loan['loan_term_months']} paid. - Lend A Hand")
         
         return jsonify({
             'success': True,
