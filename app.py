@@ -6647,6 +6647,8 @@ def chatbot_send():
         
         user_id = session['user_id']
         
+        print(f"🤖 Chatbot received: {user_message}")
+        
         # Prepare the full prompt with system instructions
         full_prompt = f"""{SYSTEM_PROMPT}
 
@@ -6657,25 +6659,43 @@ Please provide a helpful, accurate response for the farmer. Keep it concise but 
         # Get response from Gemini
         if model:
             try:
+                print("📡 Calling Gemini API...")
                 response = model.generate_content(full_prompt)
                 bot_response = response.text
+                print(f"✅ Gemini response received")
             except Exception as e:
-                print(f"❌ Gemini error: {e}")
-                bot_response = "I'm having trouble connecting right now. Please try again in a moment. If the issue persists, contact your local agriculture office for assistance."
+                print(f"❌ Gemini error: {str(e)}")
+                bot_response = "I'm having trouble connecting right now. Please try again in a moment."
         else:
-            bot_response = "I'm currently unavailable. Please try again later or contact your local agriculture office for assistance."
+            bot_response = "I'm currently unavailable. Please try again later."
         
-        # Store conversation in database
-        conn = get_vendors_db()
-        cursor = conn.cursor(cursor_factory=RealDictCursor)
-        
-        cursor.execute("""
-            INSERT INTO chatbot_conversations (user_id, user_message, bot_response)
-            VALUES (%s, %s, %s)
-        """, (user_id, user_message, bot_response))
-        
-        conn.commit()
-        conn.close()
+        # Store conversation in database (with error handling)
+        try:
+            conn = get_vendors_db()
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            
+            # Check if table exists, create if not
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS chatbot_conversations (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL,
+                    user_message TEXT NOT NULL,
+                    bot_response TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            
+            cursor.execute("""
+                INSERT INTO chatbot_conversations (user_id, user_message, bot_response)
+                VALUES (%s, %s, %s)
+            """, (user_id, user_message, bot_response))
+            
+            conn.commit()
+            conn.close()
+            print("✅ Conversation stored")
+        except Exception as db_error:
+            print(f"⚠️ Database error (non-critical): {db_error}")
+            # Don't fail if DB save fails - still return the response
         
         return jsonify({
             'success': True,
@@ -6729,7 +6749,7 @@ def chatbot_suggestions():
         "How to check soil health?",
         "Government subsidies for tractors?",
         "How to get crop insurance?",
-        "Best farming practices for wheat?",
+        "Best farming practices for wheat",
         "Organic farming subsidies available?",
         "How to register as a farmer?",
         "Weather forecast for farming"
@@ -6758,6 +6778,73 @@ def chatbot_clear():
     except Exception as e:
         print(f"❌ Error clearing chat history: {str(e)}")
         return jsonify({'error': str(e)}), 500
+@app.route('/debug/test-chatbot', methods=['GET', 'POST'])
+def test_chatbot():
+    """Test chatbot directly without database"""
+    if request.method == 'POST':
+        data = request.get_json()
+        message = data.get('message', '')
+        
+        if not message:
+            return jsonify({'error': 'No message'}), 400
+        
+        try:
+            full_prompt = f"""{SYSTEM_PROMPT}
+
+Test question: {message}"""
+            response = model.generate_content(full_prompt)
+            return jsonify({
+                'success': True,
+                'response': response.text
+            })
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+    
+    # GET request - show test form
+    return '''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Test Chatbot</title>
+        <style>
+            body { font-family: Arial; max-width: 600px; margin: 50px auto; padding: 20px; }
+            textarea { width: 100%; height: 100px; padding: 10px; margin: 10px 0; }
+            button { padding: 10px 20px; background: #2c5282; color: white; border: none; cursor: pointer; }
+            .response { margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 5px; white-space: pre-wrap; }
+        </style>
+    </head>
+    <body>
+        <h2>Test Gemini Chatbot</h2>
+        <textarea id="message" placeholder="Ask something about farming..."></textarea>
+        <button onclick="testChatbot()">Send</button>
+        <div id="response" class="response"></div>
+        
+        <script>
+            async function testChatbot() {
+                const message = document.getElementById('message').value;
+                const responseDiv = document.getElementById('response');
+                responseDiv.innerHTML = 'Loading...';
+                
+                try {
+                    const res = await fetch('/debug/test-chatbot', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({message: message})
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        responseDiv.innerHTML = '<strong>Response:</strong><br>' + data.response;
+                    } else {
+                        responseDiv.innerHTML = '<strong>Error:</strong> ' + data.error;
+                    }
+                } catch (error) {
+                    responseDiv.innerHTML = '<strong>Error:</strong> ' + error.message;
+                }
+            }
+        </script>
+    </body>
+    </html>
+    '''
 if __name__ == '__main__':
     init_databases()
     start_reminder_scheduler()
