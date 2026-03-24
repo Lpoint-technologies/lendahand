@@ -27,7 +27,7 @@ app.secret_key = 'your-secret-key-here'
 import google.generativeai as genai
 
 # Your working Gemini API key
-GEMINI_API_KEY = "AIzaSyCZN5KUSxXnP9O5mMLwRJfuXHo3Rhedp5U"
+GEMINI_API_KEY = "AIzaSyD8cZd-MdtpzkvOM42VUTzdeen0AbwjJHs"
 
 # Configure Gemini AI
 genai.configure(api_key=GEMINI_API_KEY)
