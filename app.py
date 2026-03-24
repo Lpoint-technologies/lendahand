@@ -23,6 +23,53 @@ razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'
+# ================= AI CHATBOT CONFIGURATION ==================
+import google.generativeai as genai
+
+# Your working Gemini API key
+GEMINI_API_KEY = "AIzaSyCZN5KUSxXnP9O5mMLwRJfuXHo3Rhedp5U"
+
+# Configure Gemini AI
+genai.configure(api_key=GEMINI_API_KEY)
+
+# Initialize the model - use the working model name
+try:
+    # Try with gemini-2.5-flash (your working model)
+    model = genai.GenerativeModel("gemini-2.5-flash")
+    print("✅ Gemini model loaded: gemini-2.5-flash")
+except Exception as e:
+    try:
+        # Fallback to gemini-1.5-flash
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        print("✅ Gemini model loaded: gemini-1.5-flash")
+    except:
+        try:
+            # Fallback to gemini-pro
+            model = genai.GenerativeModel("gemini-pro")
+            print("✅ Gemini model loaded: gemini-pro")
+        except Exception as e:
+            print(f"❌ Failed to load Gemini model: {e}")
+            model = None
+
+# System prompt for farming assistant
+SYSTEM_PROMPT = """You are Lend A Hand - a helpful farming assistant for Indian farmers.
+Your role is to help farmers with:
+1. Government schemes information (PM-KISAN, Kisan Credit Card, PMFBY, etc.)
+2. Land-related queries (soil types, crops, farming techniques)
+3. Equipment recommendations
+4. Farming best practices
+5. Weather and seasonal advice
+
+Important guidelines:
+- Be friendly and helpful, speak in simple language
+- For government schemes, provide accurate information about eligibility, benefits, and application process
+- If you don't know something, say "I'm not sure about that. Please contact your local agriculture office for accurate information."
+- Always encourage farmers to verify details with official sources
+- Be supportive and positive in your responses
+- Keep responses concise but informative
+- Use emojis occasionally to make responses friendly
+
+You are available 24/7 to help farmers with their agricultural needs."""
 
 # ================= DATABASE CONNECTION FUNCTIONS ==================
 
@@ -603,6 +650,17 @@ def init_vendors_db():
                 FOREIGN KEY (equipment_id) REFERENCES equipment(id)
             )
         ''')
+        # Chatbot conversations table
+        cursor.execute('''
+    CREATE TABLE IF NOT EXISTS chatbot_conversations (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        user_message TEXT NOT NULL,
+        bot_response TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES farmers(id)
+    )
+''')
         
         conn.commit()
         conn.close()
@@ -6572,7 +6630,134 @@ def api_admin_real_reports():
 def translate():
     response = requests.get("https://example.com")
     return response.text
+# ================= AI CHATBOT ROUTES ==================
 
+@app.route('/api/chatbot/send', methods=['POST'])
+def chatbot_send():
+    """Send message to AI chatbot"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Please log in first'}), 401
+    
+    try:
+        data = request.get_json()
+        user_message = data.get('message', '').strip()
+        
+        if not user_message:
+            return jsonify({'error': 'Message cannot be empty'}), 400
+        
+        user_id = session['user_id']
+        
+        # Prepare the full prompt with system instructions
+        full_prompt = f"""{SYSTEM_PROMPT}
+
+Farmer's question: {user_message}
+
+Please provide a helpful, accurate response for the farmer. Keep it concise but informative."""
+        
+        # Get response from Gemini
+        if model:
+            try:
+                response = model.generate_content(full_prompt)
+                bot_response = response.text
+            except Exception as e:
+                print(f"❌ Gemini error: {e}")
+                bot_response = "I'm having trouble connecting right now. Please try again in a moment. If the issue persists, contact your local agriculture office for assistance."
+        else:
+            bot_response = "I'm currently unavailable. Please try again later or contact your local agriculture office for assistance."
+        
+        # Store conversation in database
+        conn = get_vendors_db()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        cursor.execute("""
+            INSERT INTO chatbot_conversations (user_id, user_message, bot_response)
+            VALUES (%s, %s, %s)
+        """, (user_id, user_message, bot_response))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'response': bot_response,
+            'user_message': user_message
+        })
+        
+    except Exception as e:
+        print(f"❌ Chatbot error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/chatbot/history', methods=['GET'])
+def chatbot_history():
+    """Get chat history for the logged-in farmer"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Please log in first'}), 401
+    
+    try:
+        user_id = session['user_id']
+        limit = request.args.get('limit', 20, type=int)
+        
+        conn = get_vendors_db()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        cursor.execute("""
+            SELECT id, user_message, bot_response, created_at
+            FROM chatbot_conversations
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+            LIMIT %s
+        """, (user_id, limit))
+        
+        history = cursor.fetchall()
+        conn.close()
+        
+        return jsonify(history)
+        
+    except Exception as e:
+        print(f"❌ Error fetching chat history: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/chatbot/suggestions', methods=['GET'])
+def chatbot_suggestions():
+    """Get suggested questions for farmers"""
+    suggestions = [
+        "What is PM-KISAN scheme and how to apply?",
+        "How to get a Kisan Credit Card?",
+        "What crops are best for this season?",
+        "How to check soil health?",
+        "Government subsidies for tractors?",
+        "How to get crop insurance?",
+        "Best farming practices for wheat?",
+        "Organic farming subsidies available?",
+        "How to register as a farmer?",
+        "Weather forecast for farming"
+    ]
+    
+    return jsonify(suggestions)
+
+@app.route('/api/chatbot/clear', methods=['POST'])
+def chatbot_clear():
+    """Clear chat history for the logged-in farmer"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Please log in first'}), 401
+    
+    try:
+        user_id = session['user_id']
+        
+        conn = get_vendors_db()
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM chatbot_conversations WHERE user_id = %s", (user_id,))
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': 'Chat history cleared'})
+        
+    except Exception as e:
+        print(f"❌ Error clearing chat history: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 if __name__ == '__main__':
     init_databases()
     start_reminder_scheduler()
