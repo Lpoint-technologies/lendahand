@@ -15,8 +15,8 @@ import random
 import razorpay
 
 # Razorpay Configuration - Replace with your actual keys
-RAZORPAY_KEY_ID = "rzp_live_SUdjgvABxv5Fhh"  # Get from Razorpay Dashboard
-RAZORPAY_KEY_SECRET = "o92qQsBMFasjdPwGb1MY394S"    # Get from Razorpay Dashboard
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
 
 # Initialize Razorpay client
 razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
@@ -27,7 +27,7 @@ app.secret_key = 'your-secret-key-here'
 import google.generativeai as genai
 
 # Your working Gemini API key
-GEMINI_API_KEY = "AIzaSyD8cZd-MdtpzkvOM42VUTzdeen0AbwjJHs"
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 # Configure Gemini AI
 genai.configure(api_key=GEMINI_API_KEY)
@@ -97,7 +97,7 @@ farmer_otp_storage = {}
 # ================= SMS Sending Function ==================
 def send_sms(phone, message):
     """Send SMS using Fast2SMS API"""
-    api_key = "bo40NPM1s1lCZLYqAu1mpUl4XNjzvnF3XY83qOgDaE0HQoFxL0J9NYZePzP7"
+    api_key = os.getenv("FAST2SMS_API_KEY")
     url = "https://www.fast2sms.com/dev/bulkV2"
 
     # Clean phone number - remove any non-digit characters
