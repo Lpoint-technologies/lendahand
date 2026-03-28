@@ -13,6 +13,10 @@ import threading
 import time
 import random
 import razorpay
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # Razorpay Configuration - Replace with your actual keys
 RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
