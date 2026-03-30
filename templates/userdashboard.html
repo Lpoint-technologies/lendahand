@@ -6295,6 +6295,41 @@ function toggleChatbot() {
 // Initialize chatbot event listeners
 document.getElementById('chatbotToggle').addEventListener('click', toggleChatbot);
 document.getElementById('closeChatbot').addEventListener('click', toggleChatbot);
+document.addEventListener("DOMContentLoaded", function () {
+
+    const stars = document.querySelectorAll('#reviewModal .rating-stars i');
+    let selectedRating = 0;
+
+    stars.forEach((star, index) => {
+
+        // CLICK EVENT
+        star.addEventListener('click', () => {
+            selectedRating = index + 1;
+
+            stars.forEach((s, i) => {
+                s.style.color = i < selectedRating ? '#f59e0b' : '#ccc';
+            });
+
+            console.log("Selected Rating:", selectedRating);
+        });
+
+        // HOVER EFFECT
+        star.addEventListener('mouseover', () => {
+            stars.forEach((s, i) => {
+                s.style.color = i <= index ? '#f59e0b' : '#ccc';
+            });
+        });
+
+        // RESET AFTER HOVER
+        star.addEventListener('mouseout', () => {
+            stars.forEach((s, i) => {
+                s.style.color = i < selectedRating ? '#f59e0b' : '#ccc';
+            });
+        });
+
+    });
+
+});
 </script>
 </body>
 </html>
