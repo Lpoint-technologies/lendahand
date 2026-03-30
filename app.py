@@ -881,25 +881,47 @@ def save_vendor_document(file):
 # ================= STATIC FILE SERVING ==================
 
 # ================= STATIC FILE SERVING ==================
-
 @app.route('/static/uploads/equipment/<path:filename>')
 def serve_equipment_image(filename):
     """Serve equipment images from static folder"""
     try:
-        # Check Render disk path first
+        # Debug print
+        print(f"🔍 Looking for image: {filename}")
+        
+        # Try Render disk path first
         render_path = '/app/static/uploads/equipment'
-        if os.path.exists(os.path.join(render_path, filename)):
+        full_render_path = os.path.join(render_path, filename)
+        print(f"Checking: {full_render_path}")
+        
+        if os.path.exists(full_render_path):
+            print(f"✅ Found in Render disk: {full_render_path}")
             return send_from_directory(render_path, filename)
         
-        # Fallback to local path
+        # Try local path
         local_path = os.path.join(app.root_path, 'static', 'uploads', 'equipment')
-        if os.path.exists(os.path.join(local_path, filename)):
+        full_local_path = os.path.join(local_path, filename)
+        print(f"Checking: {full_local_path}")
+        
+        if os.path.exists(full_local_path):
+            print(f"✅ Found in local path: {full_local_path}")
             return send_from_directory(local_path, filename)
         
+        # Try alternative Render path
+        alt_render_path = '/app/static/uploads'
+        full_alt_path = os.path.join(alt_render_path, 'equipment', filename)
+        print(f"Checking: {full_alt_path}")
+        
+        if os.path.exists(full_alt_path):
+            print(f"✅ Found in alt Render path: {full_alt_path}")
+            return send_from_directory(os.path.join(alt_render_path, 'equipment'), filename)
+        
+        print(f"❌ Image not found: {filename}")
         return "Image not found", 404
         
     except Exception as e:
         print(f"Error serving image {filename}: {e}")
+        import traceback
+        traceback.print_exc()
         return "Image not found", 404
 
 @app.route('/uploads/equipment/<path:filename>')
@@ -6947,6 +6969,143 @@ Test question: {message}"""
     </body>
     </html>
     '''
+@app.route('/debug/list-images')
+def debug_list_images():
+    """List all images in the upload directory"""
+    import os
+    import glob
+    
+    result = "<h2>Images in Upload Directory</h2>"
+    
+    # Check Render disk path
+    render_path = '/app/static/uploads/equipment'
+    if os.path.exists(render_path):
+        result += f"<h3>Render Disk: {render_path}</h3>"
+        files = os.listdir(render_path)
+        if files:
+            result += f"Found {len(files)} files:<br><ul>"
+            for f in files[:20]:
+                result += f"<li>{f}</li>"
+            result += "</ul>"
+        else:
+            result += "No files found<br>"
+    else:
+        result += f"<h3>❌ Render disk path does not exist: {render_path}</h3>"
+    
+    # Check local path
+    local_path = os.path.join(app.root_path, 'static', 'uploads', 'equipment')
+    result += f"<h3>Local Path: {local_path}</h3>"
+    if os.path.exists(local_path):
+        files = os.listdir(local_path)
+        if files:
+            result += f"Found {len(files)} files:<br><ul>"
+            for f in files[:20]:
+                result += f"<li>{f}</li>"
+            result += "</ul>"
+        else:
+            result += "No files found<br>"
+    else:
+        result += "Path does not exist<br>"
+    
+    return result
+@app.route('/debug/check-image-urls')
+def debug_check_image_urls():
+    """Check image URLs in database"""
+    try:
+        conn = get_vendors_db()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        cursor.execute("SELECT id, name, image_url FROM equipment LIMIT 10")
+        equipment = cursor.fetchall()
+        conn.close()
+        
+        result = "<h2>Equipment Image URLs in Database</h2>"
+        result += "<table border='1' cellpadding='5'>"
+        result += "<tr><th>ID</th><th>Name</th><th>Image URL</th></tr>"
+        
+        for item in equipment:
+            result += f"<tr>"
+            result += f"<td>{item['id']}</td>"
+            result += f"<td>{item['name']}</td>"
+            result += f"<td>{item['image_url']}</td>"
+            result += f"</tr>"
+        
+        result += "</table>"
+        return result
+        
+    except Exception as e:
+        return f"Error: {str(e)}"
+@app.route('/admin/migrate-images', methods=['POST'])
+def migrate_images():
+    """Migrate existing images to Render disk (admin only)"""
+    if 'admin_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        import shutil
+        
+        source = os.path.join(app.root_path, 'static', 'uploads', 'equipment')
+        destination = '/app/static/uploads/equipment'
+        
+        if not os.path.exists(source):
+            return jsonify({'error': f'Source not found: {source}'})
+        
+        os.makedirs(destination, exist_ok=True)
+        
+        copied = 0
+        for filename in os.listdir(source):
+            src_path = os.path.join(source, filename)
+            dst_path = os.path.join(destination, filename)
+            if os.path.isfile(src_path):
+                shutil.copy2(src_path, dst_path)
+                copied += 1
+        
+        return jsonify({
+            'success': True,
+            'message': f'Copied {copied} images to disk',
+            'source': source,
+            'destination': destination
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+@app.route('/debug/test-upload', methods=['GET', 'POST'])
+def test_upload():
+    """Test if uploads are working to disk"""
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            return "No file uploaded"
+        
+        file = request.files['file']
+        if file.filename == '':
+            return "No file selected"
+        
+        # Save the file
+        filename = secure_filename(file.filename)
+        unique_filename = f"{uuid.uuid4().hex}_{filename}"
+        
+        # Save to disk
+        disk_path = '/app/static/uploads/equipment'
+        os.makedirs(disk_path, exist_ok=True)
+        filepath = os.path.join(disk_path, unique_filename)
+        file.save(filepath)
+        
+        return f"""
+        <h2>Upload Test Successful!</h2>
+        <p>File saved to: {filepath}</p>
+        <p>URL: <a href="/static/uploads/equipment/{unique_filename}">/static/uploads/equipment/{unique_filename}</a></p>
+        <img src="/static/uploads/equipment/{unique_filename}" style="max-width: 300px;">
+        """
+    
+    # GET request - show upload form
+    return '''
+    <h2>Test Image Upload to Disk</h2>
+    <form method="POST" enctype="multipart/form-data">
+        <input type="file" name="file" accept="image/*" required>
+        <button type="submit">Upload</button>
+    </form>
+    '''
+
 if __name__ == '__main__':
     init_databases()
     start_reminder_scheduler()
