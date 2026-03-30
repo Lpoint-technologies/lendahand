@@ -102,6 +102,9 @@ farmer_otp_storage = {}
 def send_sms(phone, message):
     """Send SMS using Fast2SMS API"""
     api_key = os.getenv("FAST2SMS_API_KEY")
+    print("RAZORPAY:", RAZORPAY_KEY_ID)
+    print("GEMINI:", GEMINI_API_KEY)
+    print("SMS:", os.getenv("FAST2SMS_API_KEY"))
     url = "https://www.fast2sms.com/dev/bulkV2"
 
     # Clean phone number - remove any non-digit characters
