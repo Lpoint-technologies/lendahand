@@ -825,43 +825,70 @@ def update_farmer_password(phone, new_password):
 
 # ================= FILE UPLOAD CONFIG ==================
 
-UPLOAD_FOLDER = 'static/uploads/equipment'
+# Get the correct upload folder path for Render disk
+def get_upload_folder():
+    """Get the correct upload folder path for Render disk"""
+    # Render disk mount path
+    if os.path.exists('/app/static/uploads'):
+        return '/app/static/uploads/equipment'
+    # Local development
+    return os.path.join(app.root_path, 'static', 'uploads', 'equipment')
+
+def get_vendor_documents_folder():
+    """Get the correct vendor documents folder path"""
+    if os.path.exists('/app/static/uploads'):
+        return '/app/static/uploads/vendor_documents'
+    return os.path.join(app.root_path, 'static', 'uploads', 'vendor_documents')
+
+UPLOAD_FOLDER = get_upload_folder()
+VENDOR_DOCUMENTS_FOLDER = get_vendor_documents_folder()
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
+# Create directories if they don't exist
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(VENDOR_DOCUMENTS_FOLDER, exist_ok=True)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def save_uploaded_image(file):
+    """Save image to disk"""
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
         unique_filename = f"{uuid.uuid4().hex}_{filename}"
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
         file.save(filepath)
+        print(f"📁 Image saved to: {filepath}")
         return f"/static/uploads/equipment/{unique_filename}"
+    return None
+
+def save_vendor_document(file):
+    """Save vendor document to disk"""
+    if file and file.filename:
+        filename = secure_filename(file.filename)
+        unique_filename = f"{uuid.uuid4().hex}_{filename}"
+        filepath = os.path.join(VENDOR_DOCUMENTS_FOLDER, unique_filename)
+        file.save(filepath)
+        print(f"📄 Document saved to: {filepath}")
+        return unique_filename
     return None
 
 # ================= STATIC FILE SERVING ==================
 
-# ================= STATIC FILE SERVING ==================
-
-@app.route('/static/uploads/equipment/<filename>')
+@app.route('/static/uploads/equipment/<path:filename>')
 def serve_equipment_image(filename):
     """Serve equipment images from static folder"""
     try:
-        # Try multiple possible paths
-        uploads_path = os.path.join(app.root_path, 'static', 'uploads', 'equipment')
-        
-        if os.path.exists(os.path.join(uploads_path, filename)):
-            return send_from_directory(uploads_path, filename)
-        
-        # Alternative path for Render
+        # Check Render disk path first
         render_path = '/app/static/uploads/equipment'
         if os.path.exists(os.path.join(render_path, filename)):
             return send_from_directory(render_path, filename)
+        
+        # Fallback to local path
+        local_path = os.path.join(app.root_path, 'static', 'uploads', 'equipment')
+        if os.path.exists(os.path.join(local_path, filename)):
+            return send_from_directory(local_path, filename)
         
         return "Image not found", 404
         
@@ -869,19 +896,30 @@ def serve_equipment_image(filename):
         print(f"Error serving image {filename}: {e}")
         return "Image not found", 404
 
-@app.route('/uploads/equipment/<filename>')
+@app.route('/uploads/equipment/<path:filename>')
 def serve_equipment_image_alt(filename):
     """Alternative route for equipment images"""
     return serve_equipment_image(filename)
 
-@app.route('/uploads/vendor_documents/<filename>')
+@app.route('/uploads/vendor_documents/<path:filename>')
 def serve_vendor_document(filename):
+    """Serve vendor documents"""
     try:
-        uploads_path = os.path.join(app.root_path, 'static', 'uploads', 'vendor_documents')
-        return send_from_directory(uploads_path, filename)
-    except:
+        # Check Render disk path first
+        render_path = '/app/static/uploads/vendor_documents'
+        if os.path.exists(os.path.join(render_path, filename)):
+            return send_from_directory(render_path, filename)
+        
+        # Fallback to local path
+        local_path = os.path.join(app.root_path, 'static', 'uploads', 'vendor_documents')
+        if os.path.exists(os.path.join(local_path, filename)):
+            return send_from_directory(local_path, filename)
+        
         return "Document not found", 404
-
+        
+    except Exception as e:
+        print(f"Error serving document {filename}: {e}")
+        return "Document not found", 404
 # ================= BASIC ROUTES ==================
 
 @app.route('/')
