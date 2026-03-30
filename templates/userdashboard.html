@@ -5414,71 +5414,122 @@ function getLoanStatusClass(status) {
     }
 
     function showReviewModal() {
-        const reviewModal = document.getElementById('reviewModal');
-        const reviewOrderSelect = document.getElementById('reviewOrder');
+    const reviewModal = document.getElementById('reviewModal');
+    const reviewOrderSelect = document.getElementById('reviewOrder');
+    
+    // Reset form
+    document.getElementById('reviewForm').reset();
+    document.getElementById('reviewRating').value = '0';
+    document.getElementById('selectedOrderInfo').style.display = 'none';
+    
+    // Reset star colors AND attach click handlers
+    const stars = document.querySelectorAll('#reviewModal .rating-stars i');
+    const ratingInput = document.getElementById('reviewRating');
+    
+    stars.forEach((star, index) => {
+        // Remove existing listeners by cloning
+        const newStar = star.cloneNode(true);
+        star.parentNode.replaceChild(newStar, star);
         
-        reviewOrderSelect.innerHTML = '<option value="">-- Select an order to review --</option>';
+        // Set initial color
+        newStar.style.color = '#e2e8f0';
         
-        document.getElementById('reviewForm').reset();
-        document.getElementById('reviewRating').value = 0;
-        document.getElementById('selectedOrderInfo').style.display = 'none';
-        
-        document.querySelectorAll('.rating-stars i').forEach(star => {
-            star.style.color = '#e2e8f0';
+        // Add click handler
+        newStar.addEventListener('click', () => {
+            const ratingValue = index + 1;
+            ratingInput.value = ratingValue;
+            
+            stars.forEach((s, i) => {
+                s.style.color = i < ratingValue ? '#f59e0b' : '#e2e8f0';
+            });
+            console.log("Rating selected:", ratingValue);
         });
         
-        reviewModal.style.display = 'flex';
-        
-        reviewOrderSelect.innerHTML = '<option value="">Loading completed orders...</option>';
-        
-        fetch('/api/user/completed-orders')
-            .then(response => {
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                return response.json();
-            })
-            .then(orders => {
-                if (orders.error) {
-                    reviewOrderSelect.innerHTML = '<option value="">Error loading orders</option>';
-                    showToast('Error loading completed orders', 'error');
-                    return;
-                }
-                
-                if (!orders || orders.length === 0) {
-                    reviewOrderSelect.innerHTML = '<option value="">No completed orders available for review</option>';
-                    showToast('No completed orders available for review', 'info');
-                    return;
-                }
-                
-                reviewOrderSelect.innerHTML = '<option value="">-- Select an order to review --</option>';
-                
-                orders.forEach(order => {
-                    const option = document.createElement('option');
-                    option.value = JSON.stringify({
-                        order_id: order.order_id,
-                        order_type: order.order_type,
-                        equipment_id: order.equipment_id,
-                        equipment_name: order.equipment_name,
-                        vendor_email: order.vendor_email,
-                        vendor_name: order.vendor_name || 'Vendor'
-                    });
-                    
-                    const orderDate = order.created_date ? 
-                        new Date(order.created_date).toLocaleDateString('en-IN', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric'
-                        }) : 'Recently';
-                    
-                    option.textContent = `${order.equipment_name} (${order.order_type === 'booking' ? 'Booking' : 'Rental'}) - ${orderDate}`;
-                    reviewOrderSelect.appendChild(option);
-                });
-            })
-            .catch(error => {
-                console.error('❌ Error loading completed orders:', error);
-                reviewOrderSelect.innerHTML = '<option value="">Error loading orders</option>';
-                showToast('Error loading completed orders: ' + error.message, 'error');
+        // Add hover effect
+        newStar.addEventListener('mouseover', () => {
+            stars.forEach((s, i) => {
+                s.style.color = i <= index ? '#f59e0b' : '#e2e8f0';
             });
-    }
+        });
+        
+        // Add mouseout effect
+        newStar.addEventListener('mouseout', () => {
+            const currentRating = parseInt(ratingInput.value) || 0;
+            stars.forEach((s, i) => {
+                s.style.color = i < currentRating ? '#f59e0b' : '#e2e8f0';
+            });
+        });
+    });
+    
+    reviewModal.style.display = 'flex';
+    
+    reviewOrderSelect.innerHTML = '<option value="">Loading completed orders...</option>';
+    
+    fetch('/api/user/completed-orders')
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return response.json();
+        })
+        .then(orders => {
+            if (orders.error) {
+                reviewOrderSelect.innerHTML = '<option value="">Error loading orders</option>';
+                showToast('Error loading completed orders', 'error');
+                return;
+            }
+            
+            if (!orders || orders.length === 0) {
+                reviewOrderSelect.innerHTML = '<option value="">No completed orders available for review</option>';
+                showToast('No completed orders available for review', 'info');
+                return;
+            }
+            
+            reviewOrderSelect.innerHTML = '<option value="">-- Select an order to review --</option>';
+            
+            orders.forEach(order => {
+                const option = document.createElement('option');
+                option.value = JSON.stringify({
+                    order_id: order.order_id,
+                    order_type: order.order_type,
+                    equipment_id: order.equipment_id,
+                    equipment_name: order.equipment_name,
+                    vendor_email: order.vendor_email,
+                    vendor_name: order.vendor_name || 'Vendor'
+                });
+                
+                const orderDate = order.created_date ? 
+                    new Date(order.created_date).toLocaleDateString('en-IN', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                    }) : 'Recently';
+                
+                option.textContent = `${order.equipment_name} (${order.order_type === 'booking' ? 'Booking' : 'Rental'}) - ${orderDate}`;
+                reviewOrderSelect.appendChild(option);
+            });
+            
+            // Add order selection change handler
+            reviewOrderSelect.addEventListener('change', function() {
+                if (this.value) {
+                    try {
+                        const orderData = JSON.parse(this.value);
+                        document.getElementById('selectedOrderInfo').style.display = 'block';
+                        document.getElementById('selectedEquipmentName').textContent = orderData.equipment_name;
+                        document.getElementById('selectedVendorName').textContent = orderData.vendor_name;
+                        document.getElementById('selectedOrderType').textContent = orderData.order_type === 'booking' ? 'Booking' : 'Rental';
+                    } catch (e) {
+                        console.error('Error parsing order data:', e);
+                    }
+                } else {
+                    document.getElementById('selectedOrderInfo').style.display = 'none';
+                }
+            });
+        })
+        .catch(error => {
+            console.error('❌ Error loading completed orders:', error);
+            reviewOrderSelect.innerHTML = '<option value="">Error loading orders</option>';
+            showToast('Error loading completed orders: ' + error.message, 'error');
+        });
+}
 
     async function submitReview() {
     const reviewOrderSelect = document.getElementById('reviewOrder');
@@ -6334,39 +6385,7 @@ document.getElementById('chatbotToggle').addEventListener('click', toggleChatbot
 document.getElementById('closeChatbot').addEventListener('click', toggleChatbot);
 document.addEventListener("DOMContentLoaded", function () {
 
-    const stars = document.querySelectorAll('#reviewModal .rating-stars i');
-    let selectedRating = 0;
-    const ratingInput = document.getElementById('reviewRating');  // ⭐ ADD THIS LINE
-
-    stars.forEach((star, index) => {
-
-        // CLICK EVENT
-        star.addEventListener('click', () => {
-            selectedRating = index + 1;
-            ratingInput.value = selectedRating;  // ⭐ ADD THIS LINE - STORES THE RATING
-
-            stars.forEach((s, i) => {
-                s.style.color = i < selectedRating ? '#f59e0b' : '#ccc';
-            });
-
-            console.log("Selected Rating:", selectedRating);
-        });
-
-        // HOVER EFFECT
-        star.addEventListener('mouseover', () => {
-            stars.forEach((s, i) => {
-                s.style.color = i <= index ? '#f59e0b' : '#ccc';
-            });
-        });
-
-        // RESET AFTER HOVER
-        star.addEventListener('mouseout', () => {
-            stars.forEach((s, i) => {
-                s.style.color = i < selectedRating ? '#f59e0b' : '#ccc';
-            });
-        });
-
-    });
+    
 
 });
 </script>
