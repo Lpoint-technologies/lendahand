@@ -880,6 +880,8 @@ def save_vendor_document(file):
 
 # ================= STATIC FILE SERVING ==================
 
+# ================= STATIC FILE SERVING ==================
+
 @app.route('/static/uploads/equipment/<path:filename>')
 def serve_equipment_image(filename):
     """Serve equipment images from static folder"""
