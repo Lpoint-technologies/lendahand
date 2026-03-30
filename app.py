@@ -846,25 +846,13 @@ def save_uploaded_image(file):
 
 # ================= STATIC FILE SERVING ==================
 
+# ================= STATIC FILE SERVING ==================
+
 @app.route('/static/uploads/equipment/<filename>')
-def serve_equipment_image(filename):
-    return send_from_directory('static/uploads/equipment', filename)
-
-@app.route('/uploads/equipment/<filename>')
-def serve_equipment_image_to_users(filename):
-    uploads_path = os.path.join(app.root_path, 'static', 'uploads', 'equipment')
-    return send_from_directory(uploads_path, filename)
-
-@app.route('/uploads/vendor_documents/<filename>')
-def serve_vendor_document(filename):
-    try:
-        return send_from_directory('static/uploads/vendor_documents', filename)
-    except:
-        return "Document not found", 404
-@app.route('/static/uploads/equipment/<path:filename>')
 def serve_equipment_image(filename):
     """Serve equipment images from static folder"""
     try:
+        # Try multiple possible paths
         uploads_path = os.path.join(app.root_path, 'static', 'uploads', 'equipment')
         
         if os.path.exists(os.path.join(uploads_path, filename)):
@@ -875,12 +863,24 @@ def serve_equipment_image(filename):
         if os.path.exists(os.path.join(render_path, filename)):
             return send_from_directory(render_path, filename)
         
-        # If file not found, return 404
         return "Image not found", 404
         
     except Exception as e:
         print(f"Error serving image {filename}: {e}")
         return "Image not found", 404
+
+@app.route('/uploads/equipment/<filename>')
+def serve_equipment_image_alt(filename):
+    """Alternative route for equipment images"""
+    return serve_equipment_image(filename)
+
+@app.route('/uploads/vendor_documents/<filename>')
+def serve_vendor_document(filename):
+    try:
+        uploads_path = os.path.join(app.root_path, 'static', 'uploads', 'vendor_documents')
+        return send_from_directory(uploads_path, filename)
+    except:
+        return "Document not found", 404
 
 # ================= BASIC ROUTES ==================
 
