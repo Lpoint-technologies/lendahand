@@ -5481,65 +5481,102 @@ function getLoanStatusClass(status) {
     }
 
     async function submitReview() {
-        const reviewOrderSelect = document.getElementById('reviewOrder');
-        const rating = document.getElementById('reviewRating').value;
-        const title = document.getElementById('reviewTitle').value;
-        const comment = document.getElementById('reviewComment').value;
-        
-        if (!reviewOrderSelect.value) {
-            showToast('Please select an order to review', 'error');
-            return;
-        }
-        
-        if (rating == 0) {
-            showToast('Please provide a rating', 'error');
-            return;
-        }
-        
-        if (!title.trim() || !comment.trim()) {
-            showToast('Please provide a title and comment for your review', 'error');
-            return;
-        }
-        
-        const orderData = JSON.parse(reviewOrderSelect.value);
-        
-        const reviewData = {
-            order_id: orderData.order_id,
-            order_type: orderData.order_type,
-            equipment_id: orderData.equipment_id,
-            equipment_name: orderData.equipment_name,
-            vendor_email: orderData.vendor_email,
-            vendor_name: orderData.vendor_name,
-            rating: parseInt(rating),
-            title: title,
-            comment: comment
-        };
-        
-        try {
-            const response = await fetch('/api/user/reviews/submit', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(reviewData)
-            });
-            
-            const result = await response.json();
-            
-            if (response.ok && result.success) {
-                showToast('Review submitted successfully!');
-                document.getElementById('reviewModal').style.display = 'none';
-                
-                loadReviews();
-                updateStats();
-            } else {
-                showToast(result.error || 'Error submitting review', 'error');
-            }
-        } catch (error) {
-            console.error('Error submitting review:', error);
-            showToast('Error submitting review', 'error');
-        }
+    const reviewOrderSelect = document.getElementById('reviewOrder');
+    const ratingInput = document.getElementById('reviewRating');
+    const title = document.getElementById('reviewTitle').value.trim();
+    const comment = document.getElementById('reviewComment').value.trim();
+    
+    // Debug: Log the rating value to console
+    console.log("Rating value from input:", ratingInput.value);
+    
+    // Validate order selection
+    if (!reviewOrderSelect.value) {
+        showToast('Please select an order to review', 'error');
+        return;
     }
+    
+    // Validate rating - Check the hidden input value
+    const rating = parseInt(ratingInput.value);
+    if (isNaN(rating) || rating === 0) {
+        showToast('Please select a rating by clicking on the stars', 'error');
+        // Highlight stars to draw attention
+        const starsContainer = document.querySelector('#reviewModal .rating-stars');
+        starsContainer.style.border = '2px solid red';
+        starsContainer.style.borderRadius = '8px';
+        setTimeout(() => {
+            starsContainer.style.border = '';
+        }, 2000);
+        return;
+    }
+    
+    // Validate title
+    if (!title) {
+        showToast('Please provide a review title', 'error');
+        document.getElementById('reviewTitle').focus();
+        return;
+    }
+    
+    // Validate comment
+    if (!comment) {
+        showToast('Please provide your review comment', 'error');
+        document.getElementById('reviewComment').focus();
+        return;
+    }
+    
+    // Parse order data
+    let orderData;
+    try {
+        orderData = JSON.parse(reviewOrderSelect.value);
+    } catch (e) {
+        showToast('Invalid order selection', 'error');
+        return;
+    }
+    
+    const reviewData = {
+        order_id: orderData.order_id,
+        order_type: orderData.order_type,
+        equipment_id: orderData.equipment_id,
+        equipment_name: orderData.equipment_name,
+        vendor_email: orderData.vendor_email,
+        vendor_name: orderData.vendor_name,
+        rating: rating,  // Use the validated rating
+        title: title,
+        comment: comment
+    };
+    
+    // Show loading state
+    const submitBtn = document.getElementById('submitReviewBtn');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+    submitBtn.disabled = true;
+    
+    try {
+        const response = await fetch('/api/user/reviews/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(reviewData)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+            showToast('✅ Review submitted successfully!');
+            document.getElementById('reviewModal').style.display = 'none';
+            loadReviews();
+            updateStats();
+        } else {
+            showToast(result.error || 'Error submitting review', 'error');
+        }
+    } catch (error) {
+        console.error('Error submitting review:', error);
+        showToast('Error submitting review. Please try again.', 'error');
+    } finally {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }
+}
 
     async function deleteReview(reviewId) {
         if (!confirm('Are you sure you want to delete this review?')) {
@@ -6299,12 +6336,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const stars = document.querySelectorAll('#reviewModal .rating-stars i');
     let selectedRating = 0;
+    const ratingInput = document.getElementById('reviewRating');  // ⭐ ADD THIS LINE
 
     stars.forEach((star, index) => {
 
         // CLICK EVENT
         star.addEventListener('click', () => {
             selectedRating = index + 1;
+            ratingInput.value = selectedRating;  // ⭐ ADD THIS LINE - STORES THE RATING
 
             stars.forEach((s, i) => {
                 s.style.color = i < selectedRating ? '#f59e0b' : '#ccc';
