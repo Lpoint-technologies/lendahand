@@ -5423,37 +5423,50 @@ function getLoanStatusClass(status) {
     document.getElementById('selectedOrderInfo').style.display = 'none';
     
     // Reset star colors AND attach click handlers
-    const stars = document.querySelectorAll('#reviewModal .rating-stars i');
+    const starsContainer = document.querySelector('#reviewModal .rating-stars');
     const ratingInput = document.getElementById('reviewRating');
     
+    // Get all stars
+    let stars = document.querySelectorAll('#reviewModal .rating-stars i');
+    
+    // Recreate stars to ensure fresh event listeners
+    starsContainer.innerHTML = '';
+    for (let i = 1; i <= 5; i++) {
+        const star = document.createElement('i');
+        star.className = 'fas fa-star';
+        star.setAttribute('data-rating', i);
+        star.style.fontSize = '1.5rem';
+        star.style.color = '#e2e8f0';
+        star.style.cursor = 'pointer';
+        starsContainer.appendChild(star);
+    }
+    
+    // Get the new stars
+    stars = document.querySelectorAll('#reviewModal .rating-stars i');
+    
+    // Add event listeners to each star
     stars.forEach((star, index) => {
-        // Remove existing listeners by cloning
-        const newStar = star.cloneNode(true);
-        star.parentNode.replaceChild(newStar, star);
-        
-        // Set initial color
-        newStar.style.color = '#e2e8f0';
-        
-        // Add click handler
-        newStar.addEventListener('click', () => {
+        // Click handler
+        star.addEventListener('click', () => {
             const ratingValue = index + 1;
             ratingInput.value = ratingValue;
             
+            // Update star colors
             stars.forEach((s, i) => {
                 s.style.color = i < ratingValue ? '#f59e0b' : '#e2e8f0';
             });
             console.log("Rating selected:", ratingValue);
         });
         
-        // Add hover effect
-        newStar.addEventListener('mouseover', () => {
+        // Hover effect
+        star.addEventListener('mouseover', () => {
             stars.forEach((s, i) => {
                 s.style.color = i <= index ? '#f59e0b' : '#e2e8f0';
             });
         });
         
-        // Add mouseout effect
-        newStar.addEventListener('mouseout', () => {
+        // Mouseout - reset to selected rating
+        star.addEventListener('mouseout', () => {
             const currentRating = parseInt(ratingInput.value) || 0;
             stars.forEach((s, i) => {
                 s.style.color = i < currentRating ? '#f59e0b' : '#e2e8f0';
