@@ -27,6 +27,10 @@ razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'
+# Create upload directories if they don't exist
+os.makedirs('static/uploads/equipment', exist_ok=True)
+os.makedirs('static/uploads/vendor_documents', exist_ok=True)
+print("✅ Upload directories created/verified")
 # ================= AI CHATBOT CONFIGURATION ==================
 import google.generativeai as genai
 
