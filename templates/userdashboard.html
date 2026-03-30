@@ -1278,7 +1278,7 @@
             color: var(--dark);
         }
 
-        .scheme-deion {
+        .scheme-description {
             color: var(--gray);
             font-size: 0.9rem;
             line-height: 1.5;
@@ -3062,58 +3062,7 @@
     const priceFilter = document.getElementById('priceFilter');
     const locationFilter = document.getElementById('locationFilter');
     const cartCounter = document.getElementById('cartCounter');
-    const searchInput = document.getElementById("searchInput");
-    const categoryFilter = document.getElementById("categoryFilter");
-    const priceFilter = document.getElementById("priceFilter");
-    const locationFilter = document.getElementById("locationFilter");
 
-    let allEquipment = []; // store all data
-
-    // Call this after loading equipment
-    function setEquipmentData(data) {
-    allEquipment = data;
-    renderEquipment(data);
-    }
-
-    // FILTER FUNCTION
-    function applyFilters() {
-
-    const search = searchInput.value.toLowerCase();
-    const category = categoryFilter.value;
-    const price = priceFilter.value;
-    const location = locationFilter.value;
-
-    let filtered = allEquipment.filter(item => {
-
-    // SEARCH
-    const matchesSearch = item.name.toLowerCase().includes(search);
-
-    // CATEGORY
-    const matchesCategory = !category || item.category === category;
-
-    // LOCATION
-    const matchesLocation = !location || item.location.toLowerCase().includes(location);
-
-    // PRICE
-    let matchesPrice = true;
-    if (price) {
-            const p = item.price;
-            if (price === "0-1000") matchesPrice = p < 1000;
-            if (price === "1000-5000") matchesPrice = p >= 1000 && p <= 5000;
-            if (price === "5000-10000") matchesPrice = p >= 5000 && p <= 10000;
-            if (price === "10000+") matchesPrice = p > 10000;
-        }
-
-    return matchesSearch && matchesCategory && matchesLocation && matchesPrice;
-    });
-
-    renderEquipment(filtered);
-    }
-    // EVENTS
-    searchInput.addEventListener("input", applyFilters);
-    categoryFilter.addEventListener("change", applyFilters);
-    priceFilter.addEventListener("change", applyFilters);
-    locationFilter.addEventListener("change", applyFilters);
     // Mobile menu elements
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
@@ -3123,41 +3072,7 @@
     let currentEquipment = null;
     let paymentMode = 'full';
     let currentLoanData = null;
-    document.addEventListener("DOMContentLoaded", function () {
 
-    const stars = document.querySelectorAll('#reviewModal .rating-stars i');
-    let selectedRating = 0;
-
-    stars.forEach((star, index) => {
-
-        // CLICK
-        star.addEventListener('click', () => {
-            selectedRating = index + 1;
-
-            stars.forEach((s, i) => {
-                s.style.color = i < selectedRating ? '#f59e0b' : '#ccc';
-            });
-
-            console.log("Selected rating:", selectedRating);
-        });
-
-        // HOVER
-        star.addEventListener('mouseover', () => {
-            stars.forEach((s, i) => {
-                s.style.color = i <= index ? '#f59e0b' : '#ccc';
-            });
-        });
-
-        // RESET AFTER HOVER
-        star.addEventListener('mouseout', () => {
-            stars.forEach((s, i) => {
-                s.style.color = i < selectedRating ? '#f59e0b' : '#ccc';
-            });
-        });
-
-    });
-
-});
     // ================= GOVERNMENT SCHEMES DATA =================
     const schemesData = [
         {
