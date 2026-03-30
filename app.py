@@ -75,33 +75,49 @@ Important guidelines:
 
 You are available 24/7 to help farmers with their agricultural needs."""
 # Quick fallback responses for when Gemini times out
+# Quick fallback responses - NO API CALL NEEDED
 def get_fallback_response(user_message):
-    """Quick responses without API call"""
-    msg = user_message.lower()
+    """Quick responses without API call - instant response"""
+    msg = user_message.lower().strip()
     
-    # Quick responses
-    quick_responses = {
-        'hi': "Hello! 👋 How can I help you with farming today?",
-        'hello': "Namaste! 🌾 Ask me about government schemes, crops, or equipment.",
-        'pm-kisan': "PM-KISAN gives ₹6,000/year to farmers in 3 installments. Apply at pmkisan.gov.in or local agriculture office.",
-        'kisan credit card': "KCC provides loans at 7% interest. Apply at your nearest bank with land records and ID proof.",
-        'crop insurance': "PMFBY insurance premium is 2% for Kharif, 1.5% for Rabi. Apply before sowing season.",
-        'subsidy': "SMAM scheme gives 50% subsidy on farm equipment for small/marginal farmers.",
-        'tractor': "SMAM scheme offers up to 50% subsidy on tractors. Contact local agriculture department.",
-        'soil': "Get free soil testing at your local agriculture office. They'll provide soil health card.",
-        'weather': "Check IMD weather app or ask your local agriculture officer for seasonal forecasts.",
-        'loan': "Kisan Credit Card offers crop loans at 7%. PM-KISAN is direct income support.",
-        'registration': "Register as farmer at local agriculture office with land records and ID proof.",
-        'equipment': "SMAM scheme subsidizes equipment. You can also rent from vendors on our platform!",
-        'crops': "Choose crops based on your soil and season. Consult local agriculture officer for best advice.",
-        'default': "I can help with: 🌾 PM-KISAN, 💳 KCC, 🌱 Crop Insurance, 🚜 Equipment Subsidy. Please ask a specific question or call Kisan Call Center: 1800-180-1551"
-    }
+    # Greetings
+    if msg in ['hi', 'hello', 'hey', 'namaste', 'hello there']:
+        return "Hello! 👋 I'm your farming assistant. Ask me about government schemes, crops, equipment, or farming tips!"
     
-    for key, response in quick_responses.items():
-        if key in msg:
-            return response
+    # PM-KISAN
+    if 'pm-kisan' in msg or 'pm kisan' in msg:
+        return "🌾 **PM-KISAN** provides ₹6,000 per year to farmers in 3 installments.\n\n📝 **How to apply:**\n1. Visit pmkisan.gov.in\n2. Click on 'Farmer Corner'\n3. Register with Aadhaar and land records\n4. Submit at local agriculture office\n\n✅ You'll receive payment directly in bank account."
     
-    return quick_responses['default']
+    # Kisan Credit Card
+    if 'kisan credit card' in msg or 'kcc' in msg:
+        return "💳 **Kisan Credit Card (KCC)** provides crop loans at 7% interest (3% for timely repayment).\n\n📝 **How to apply:**\n1. Visit your nearest bank\n2. Fill KCC application form\n3. Submit land records, ID proof, passport photo\n4. Bank will verify and issue card\n\n💰 Credit limit up to ₹3,00,000 based on land holding."
+    
+    # Crop Insurance
+    if 'crop insurance' in msg or 'pmfby' in msg:
+        return "🌱 **PMFBY (Pradhan Mantri Fasal Bima Yojana)** crop insurance:\n\n💰 Premium rates:\n• Kharif crops: 2%\n• Rabi crops: 1.5%\n\n📝 **How to apply:**\nApply before sowing season at your bank or agriculture office. Government pays the remaining premium."
+    
+    # Subsidy
+    if 'subsidy' in msg or 'tractor' in msg or 'equipment' in msg:
+        return "🚜 **SMAM Scheme** provides up to 50% subsidy on agricultural machinery!\n\n✅ Eligible for small & marginal farmers\n📝 Apply at local agriculture office\n💰 Examples: Tractors (50%), Harvesters (40%), Power tillers (40%)"
+    
+    # Soil
+    if 'soil' in msg or 'soil health' in msg:
+        return "🌱 **Soil Health Card Scheme** gives free soil testing!\n\n📝 **How to get:**\n1. Visit local agriculture office\n2. Give soil sample from your farm\n3. Get Soil Health Card with recommendations\n4. Follow fertilizer advice for better yield\n\n📍 Available at all Krishi Vigyan Kendras (KVKs)."
+    
+    # Registration
+    if 'register' in msg or 'registration' in msg:
+        return "📝 **How to register as a farmer:**\n\n1. Visit your local agriculture office\n2. Carry land records (patta/passbook)\n3. Aadhaar card, bank passbook\n4. Fill registration form\n5. Get farmer ID card\n\n✅ After registration, you can apply for all government schemes!"
+    
+    # Loan
+    if 'loan' in msg and 'crop' not in msg:
+        return "💰 **Agricultural Loans available:**\n\n1. **Kisan Credit Card** - Crop loans at 7%\n2. **PM-KISAN** - Direct income support\n3. **SMAM** - Equipment purchase subsidy\n4. **NABARD** - Long-term loans for infrastructure\n\nVisit your bank or agriculture office for application."
+    
+    # Weather
+    if 'weather' in msg:
+        return "🌤️ **Check weather forecast:**\n\n📱 Download 'Meghdoot' app by IMD\n🌐 Visit imd.gov.in\n📞 Call Kisan Call Center: 1800-180-1551\n\nPlan your farming activities based on seasonal forecasts!"
+    
+    # Default response
+    return "🌾 I can help you with:\n\n• PM-KISAN scheme\n• Kisan Credit Card (KCC)\n• Crop Insurance (PMFBY)\n• Equipment subsidy (SMAM)\n• Soil Health Card\n• Farmer registration\n\nPlease ask a specific question or call Kisan Call Center: 1800-180-1551"
 # ================= DATABASE CONNECTION FUNCTIONS ==================
 
 def get_vendors_db():
@@ -6669,7 +6685,7 @@ def translate():
 # In your chatbot route, add timeout and reduce complexity
 @app.route('/api/chatbot/send', methods=['POST'])
 def chatbot_send():
-    """Send message to AI chatbot with timeout"""
+    """Send message to chatbot - uses fast fallback responses only"""
     if 'user_id' not in session:
         return jsonify({'error': 'Please log in first'}), 401
     
@@ -6682,74 +6698,39 @@ def chatbot_send():
         
         user_id = session['user_id']
         
-        print(f"🤖 Chatbot received: {user_message[:50]}...")
+        print(f"🤖 Chatbot received: {user_message}")
         
-        # Check if model is available
-        if not model:
-            return jsonify({
-                'success': False,
-                'response': "I'm currently experiencing technical difficulties. Please try again later.",
-                'error': 'Model not available'
-            }), 503
+        # Get instant response from fallback function
+        bot_response = get_fallback_response(user_message)
         
-        # Prepare the full prompt with system instructions (keep it shorter)
-        full_prompt = f"""You are a farming assistant. Answer briefly and helpfully.
-
-Question: {user_message}
-
-Answer (keep it short, 2-3 sentences max):"""
+        print(f"✅ Response: {bot_response[:50]}...")
         
-        # Set a timeout using threading
-        import threading
-        result = {'response': None, 'error': None}
-        
-        def call_gemini():
+        # Store conversation in background (don't block response)
+        def store_conversation():
             try:
-                response = model.generate_content(
-                    full_prompt,
-                    generation_config={
-                        "temperature": 0.7,
-                        "max_output_tokens": 150,  # Reduced from 500
-                        "top_p": 0.9,
-                    }
-                )
-                result['response'] = response.text
+                conn = get_vendors_db()
+                cursor = conn.cursor()
+                # Create table if not exists
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS chatbot_conversations (
+                        id SERIAL PRIMARY KEY,
+                        user_id INTEGER NOT NULL,
+                        user_message TEXT NOT NULL,
+                        bot_response TEXT NOT NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """)
+                cursor.execute("""
+                    INSERT INTO chatbot_conversations (user_id, user_message, bot_response)
+                    VALUES (%s, %s, %s)
+                """, (user_id, user_message, bot_response))
+                conn.commit()
+                conn.close()
             except Exception as e:
-                result['error'] = str(e)
+                print(f"⚠️ DB store error: {e}")
         
-        # Run with timeout
-        thread = threading.Thread(target=call_gemini)
-        thread.start()
-        thread.join(timeout=8)  # 8 second timeout
-        
-        if thread.is_alive():
-            print("⚠️ Gemini API timeout after 8 seconds")
-            bot_response = "I'm taking too long to respond. Please try again with a shorter question."
-        elif result['error']:
-            print(f"❌ Gemini error: {result['error']}")
-            bot_response = get_fallback_response(user_message)
-        else:
-            bot_response = result['response'] or get_fallback_response(user_message)
-        
-        # Store in database (non-blocking)
-        try:
-            # Use a separate thread for DB operation to not block response
-            def store_conversation():
-                try:
-                    conn = get_vendors_db()
-                    cursor = conn.cursor()
-                    cursor.execute("""
-                        INSERT INTO chatbot_conversations (user_id, user_message, bot_response)
-                        VALUES (%s, %s, %s)
-                    """, (user_id, user_message, bot_response))
-                    conn.commit()
-                    conn.close()
-                except:
-                    pass
-            
-            threading.Thread(target=store_conversation).start()
-        except:
-            pass
+        # Store in background
+        threading.Thread(target=store_conversation).start()
         
         return jsonify({
             'success': True,
@@ -6759,11 +6740,13 @@ Answer (keep it short, 2-3 sentences max):"""
         
     except Exception as e:
         print(f"❌ Chatbot error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
-            'success': False,
-            'error': str(e),
-            'response': get_fallback_response("")
-        }), 500
+            'success': True,
+            'response': "I'm experiencing technical issues. Please call Kisan Call Center: 1800-180-1551 for assistance.",
+            'user_message': user_message if 'user_message' in locals() else ''
+        }), 200
 @app.route('/api/chatbot/history', methods=['GET'])
 def chatbot_history():
     """Get chat history for the logged-in farmer"""
