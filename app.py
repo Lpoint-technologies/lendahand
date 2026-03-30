@@ -6639,9 +6639,10 @@ def translate():
     return response.text
 # ================= AI CHATBOT ROUTES ==================
 
+# In your chatbot route, add timeout and reduce complexity
 @app.route('/api/chatbot/send', methods=['POST'])
 def chatbot_send():
-    """Send message to AI chatbot"""
+    """Send message to AI chatbot with timeout"""
     if 'user_id' not in session:
         return jsonify({'error': 'Please log in first'}), 401
     
@@ -6654,55 +6655,74 @@ def chatbot_send():
         
         user_id = session['user_id']
         
-        print(f"🤖 Chatbot received: {user_message}")
+        print(f"🤖 Chatbot received: {user_message[:50]}...")
         
-        # Prepare the full prompt with system instructions
-        full_prompt = f"""{SYSTEM_PROMPT}
-
-Farmer's question: {user_message}
-
-Please provide a helpful, accurate response for the farmer. Keep it concise but informative."""
+        # Check if model is available
+        if not model:
+            return jsonify({
+                'success': False,
+                'response': "I'm currently experiencing technical difficulties. Please try again later.",
+                'error': 'Model not available'
+            }), 503
         
-        # Get response from Gemini
-        if model:
+        # Prepare the full prompt with system instructions (keep it shorter)
+        full_prompt = f"""You are a farming assistant. Answer briefly and helpfully.
+
+Question: {user_message}
+
+Answer (keep it short, 2-3 sentences max):"""
+        
+        # Set a timeout using threading
+        import threading
+        result = {'response': None, 'error': None}
+        
+        def call_gemini():
             try:
-                print("📡 Calling Gemini API...")
-                response = model.generate_content(full_prompt)
-                bot_response = response.text
-                print(f"✅ Gemini response received")
-            except Exception as e:
-                print(f"❌ Gemini error: {str(e)}")
-                bot_response = "I'm having trouble connecting right now. Please try again in a moment."
-        else:
-            bot_response = "I'm currently unavailable. Please try again later."
-        
-        # Store conversation in database (with error handling)
-        try:
-            conn = get_vendors_db()
-            cursor = conn.cursor(cursor_factory=RealDictCursor)
-            
-            # Check if table exists, create if not
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS chatbot_conversations (
-                    id SERIAL PRIMARY KEY,
-                    user_id INTEGER NOT NULL,
-                    user_message TEXT NOT NULL,
-                    bot_response TEXT NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                response = model.generate_content(
+                    full_prompt,
+                    generation_config={
+                        "temperature": 0.7,
+                        "max_output_tokens": 150,  # Reduced from 500
+                        "top_p": 0.9,
+                    }
                 )
-            """)
+                result['response'] = response.text
+            except Exception as e:
+                result['error'] = str(e)
+        
+        # Run with timeout
+        thread = threading.Thread(target=call_gemini)
+        thread.start()
+        thread.join(timeout=8)  # 8 second timeout
+        
+        if thread.is_alive():
+            print("⚠️ Gemini API timeout after 8 seconds")
+            bot_response = "I'm taking too long to respond. Please try again with a shorter question."
+        elif result['error']:
+            print(f"❌ Gemini error: {result['error']}")
+            bot_response = get_fallback_response(user_message)
+        else:
+            bot_response = result['response'] or get_fallback_response(user_message)
+        
+        # Store in database (non-blocking)
+        try:
+            # Use a separate thread for DB operation to not block response
+            def store_conversation():
+                try:
+                    conn = get_vendors_db()
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        INSERT INTO chatbot_conversations (user_id, user_message, bot_response)
+                        VALUES (%s, %s, %s)
+                    """, (user_id, user_message, bot_response))
+                    conn.commit()
+                    conn.close()
+                except:
+                    pass
             
-            cursor.execute("""
-                INSERT INTO chatbot_conversations (user_id, user_message, bot_response)
-                VALUES (%s, %s, %s)
-            """, (user_id, user_message, bot_response))
-            
-            conn.commit()
-            conn.close()
-            print("✅ Conversation stored")
-        except Exception as db_error:
-            print(f"⚠️ Database error (non-critical): {db_error}")
-            # Don't fail if DB save fails - still return the response
+            threading.Thread(target=store_conversation).start()
+        except:
+            pass
         
         return jsonify({
             'success': True,
@@ -6712,10 +6732,11 @@ Please provide a helpful, accurate response for the farmer. Keep it concise but 
         
     except Exception as e:
         print(f"❌ Chatbot error: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({'error': str(e)}), 500
-
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'response': get_fallback_response("")
+        }), 500
 @app.route('/api/chatbot/history', methods=['GET'])
 def chatbot_history():
     """Get chat history for the logged-in farmer"""
