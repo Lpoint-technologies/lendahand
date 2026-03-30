@@ -74,7 +74,34 @@ Important guidelines:
 - Use emojis occasionally to make responses friendly
 
 You are available 24/7 to help farmers with their agricultural needs."""
-
+# Quick fallback responses for when Gemini times out
+def get_fallback_response(user_message):
+    """Quick responses without API call"""
+    msg = user_message.lower()
+    
+    # Quick responses
+    quick_responses = {
+        'hi': "Hello! 👋 How can I help you with farming today?",
+        'hello': "Namaste! 🌾 Ask me about government schemes, crops, or equipment.",
+        'pm-kisan': "PM-KISAN gives ₹6,000/year to farmers in 3 installments. Apply at pmkisan.gov.in or local agriculture office.",
+        'kisan credit card': "KCC provides loans at 7% interest. Apply at your nearest bank with land records and ID proof.",
+        'crop insurance': "PMFBY insurance premium is 2% for Kharif, 1.5% for Rabi. Apply before sowing season.",
+        'subsidy': "SMAM scheme gives 50% subsidy on farm equipment for small/marginal farmers.",
+        'tractor': "SMAM scheme offers up to 50% subsidy on tractors. Contact local agriculture department.",
+        'soil': "Get free soil testing at your local agriculture office. They'll provide soil health card.",
+        'weather': "Check IMD weather app or ask your local agriculture officer for seasonal forecasts.",
+        'loan': "Kisan Credit Card offers crop loans at 7%. PM-KISAN is direct income support.",
+        'registration': "Register as farmer at local agriculture office with land records and ID proof.",
+        'equipment': "SMAM scheme subsidizes equipment. You can also rent from vendors on our platform!",
+        'crops': "Choose crops based on your soil and season. Consult local agriculture officer for best advice.",
+        'default': "I can help with: 🌾 PM-KISAN, 💳 KCC, 🌱 Crop Insurance, 🚜 Equipment Subsidy. Please ask a specific question or call Kisan Call Center: 1800-180-1551"
+    }
+    
+    for key, response in quick_responses.items():
+        if key in msg:
+            return response
+    
+    return quick_responses['default']
 # ================= DATABASE CONNECTION FUNCTIONS ==================
 
 def get_vendors_db():
